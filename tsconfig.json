@@ -17,8 +17,7 @@
     ],
     "paths": {
       "@mintplayer/ng-seo": [
-        "dist/mintplayer/ng-seo/mintplayer-ng-seo",
-        "dist/mintplayer/ng-seo"
+        "dist/mintplayer/ng-seo/*"
       ]
     }
   }
