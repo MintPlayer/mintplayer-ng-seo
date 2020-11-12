@@ -12,8 +12,8 @@ export class SeoTagService {
   // cd mintplayer-ng-seo
   // ng generate library @mintplayer/ng-seo
   // ng build @mintplayer/ng-seo --prod
-  // cd dist/seo-tag-service
-  // npm publish
+  // npm login
+  // npm publish --access public
 
   private document: Document;
 
