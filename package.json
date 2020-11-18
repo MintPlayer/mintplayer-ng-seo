@@ -1,6 +1,6 @@
 {
   "name": "@mintplayer/ng-seo",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,6 +9,10 @@
     "lint": "ng lint"
   },
   "private": false,
+  "files": [
+	  "dist/mintplayer/ng-seo"
+  ],
+  "main": "dist/mintplayer/ng-seo/mintplayer-ng-seo.d.ts",
   "dependencies": {
     "@angular/animations": "~10.2.0",
     "@angular/common": "~10.2.0",
