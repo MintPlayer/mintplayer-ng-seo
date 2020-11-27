@@ -22,9 +22,12 @@ jobs:
     - name: Install dependencies
       run: npm install
     
+    - name: Build
+      run: ng build @mintplayer/ng-seo --prod
+
     - name: Test
       run: npm run test-headless
     
-    - run: npm publish
+    - run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}

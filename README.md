@@ -1,27 +1,30 @@
-# MintplayerNgSeo
+# @mintplayer/ng-seo
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.2.0.
+This package bundles some actions to create the tags required for Search-Engine Optimization.
 
-## Development server
+## Installation
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+    npm install --save @mintplayer/ng-seo
 
-## Code scaffolding
+## Usage
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+1) Inject the `SeoTagService` anywhere you want to add/remove the tags
 
-## Build
+    import { Component } from '@angular/core';
+    import { SeoTagService } from '@mintplayer/ng-seo';
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+    @Component({
+        selector: 'app-root',
+        templateUrl: './app.component.html',
+        styleUrls: ['./app.component.scss']
+    })
+    export class AppComponent {
+        constructor(private seoTagService: SeoTagService) {
+        }
+    }
 
-## Running unit tests
+2) Call `seoTagService.addTags(currentUrl, canonicalUrl, title, description)` in the `OnInit` hook. `canonicalUrl` is the url that primarily represents your content (eg. without query parameters).
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+3) Store the result of the `seoTagService.addTags` call in a field.
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+4) Call `seoTagService.removeTags(tags)` in the `OnDestroy hook`.
