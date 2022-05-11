@@ -1,0 +1,45 @@
+{
+  "projectType": "library",
+  "sourceRoot": "libs/mintplayer-ng-seo/src",
+  "prefix": "mintplayer-ng-seo",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/angular:package",
+      "outputs": [
+        "dist/libs/mintplayer-ng-seo"
+      ],
+      "options": {
+        "project": "libs/mintplayer-ng-seo/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": [
+        "coverage/libs/mintplayer-ng-seo"
+      ],
+      "options": {
+        "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/mintplayer-ng-seo/src/**/*.ts",
+          "libs/mintplayer-ng-seo/src/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

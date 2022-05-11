@@ -1,0 +1,7 @@
+<ng-container [jsonLd]="{title: 'Whatever ' + counter, artist: 'Oasis'}" [minify]="false"></ng-container>
+<ng-container [seo]="{ title: 'Hello world ' + counter, description: 'Welcome ' + counter }" [standardUrl]="{ commands: ['/'], extras: { queryParams: { lang: ''} } }" [canonicalUrl]="{ commands: ['/'] }"></ng-container>
+<ng-container [hrefLang]="{ en: { commands: ['/'], extras: { queryParams: { lang: null, id: counter } } } }"></ng-container>
+<ng-container [hrefLang]="{ fr: { commands: ['/'], extras: { queryParams: { lang: 'fr', id: counter } } } }"></ng-container>
+<ng-container [hrefLang]="{ nl: { commands: ['/'], extras: { queryParams: { lang: 'nl', id: counter } } } }"></ng-container>
+
+<button (click)="counter = counter + 1">Increment counter</button>
