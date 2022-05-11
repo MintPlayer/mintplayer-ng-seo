@@ -27,22 +27,22 @@ jobs:
       run: npm install
     
     - name: Build
-      run: npm run nx run-many -- --target=build --projects=ng-bootstrap-demo --configuration=production
+      run: npm run nx run-many -- --target=build --projects=seo-demo --configuration=production
 
     - name: Test
-      run: npm run nx run-many -- --target=test --projects=ng-bootstrap-demo --watch=false --browsers=ChromeHeadless --coverage --coverageReporters=lcovonly
+      run: npm run nx run-many -- --target=test --projects=seo-demo --watch=false --browsers=ChromeHeadless --coverage --coverageReporters=lcovonly
 
-    ## ng-animations
+    ## ng-json-ld
     - name: Upload code coverage report
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/libs/mintplayer-ng-animations
+        directory: ./coverage/libs/mintplayer-ng-json-ld
       
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-animations/package.json'
+        package: 'dist/libs/mintplayer-ng-json-ld/package.json'
         registry: 'https://registry.npmjs.org'
         token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
         access: 'public'
@@ -50,22 +50,22 @@ jobs:
     - name: Push to Github
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-animations/package.json'
+        package: 'dist/libs/mintplayer-ng-json-ld/package.json'
         registry: 'https://npm.pkg.github.com'
         token: ${{ github.token }}
         access: 'public'
 
-    ## ng-click-outside
+    ## ng-pwa-helper
     - name: Upload code coverage report
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/libs/mintplayer-ng-click-outside
+        directory: ./coverage/libs/mintplayer-ng-pwa-helper
       
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-click-outside/package.json'
+        package: 'dist/libs/mintplayer-ng-pwa-helper/package.json'
         registry: 'https://registry.npmjs.org'
         token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
         access: 'public'
@@ -73,22 +73,22 @@ jobs:
     - name: Push to Github
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-click-outside/package.json'
+        package: 'dist/libs/mintplayer-ng-pwa-helper/package.json'
         registry: 'https://npm.pkg.github.com'
         token: ${{ github.token }}
         access: 'public'
 
-    ## ng-focus-on-load
+    ## ng-seo
     - name: Upload code coverage report
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/libs/mintplayer-ng-focus-on-load
+        directory: ./coverage/libs/mintplayer-ng-seo
       
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-focus-on-load/package.json'
+        package: 'dist/libs/mintplayer-ng-seo/package.json'
         registry: 'https://registry.npmjs.org'
         token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
         access: 'public'
@@ -96,53 +96,7 @@ jobs:
     - name: Push to Github
       uses: JS-DevTools/npm-publish@v1
       with:
-        package: 'dist/libs/mintplayer-ng-focus-on-load/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-
-    ## ng-bootstrap
-    - name: Upload code coverage report
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/libs/mintplayer-ng-bootstrap
-      
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v1
-      with:
-        package: 'dist/libs/mintplayer-ng-bootstrap/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
-        access: 'public'
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v1
-      with:
-        package: 'dist/libs/mintplayer-ng-bootstrap/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-
-    ## ng-qr-code
-    - name: Upload code coverage report
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/libs/mintplayer-ng-qr-code
-      
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v1
-      with:
-        package: 'dist/libs/mintplayer-ng-qr-code/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
-        access: 'public'
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v1
-      with:
-        package: 'dist/libs/mintplayer-ng-qr-code/package.json'
+        package: 'dist/libs/mintplayer-ng-seo/package.json'
         registry: 'https://npm.pkg.github.com'
         token: ${{ github.token }}
         access: 'public'
