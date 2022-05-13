@@ -54,6 +54,7 @@ export class HrefLangDirective implements OnDestroy {
 
   ngOnDestroy() {
     this.destroyed$.next(true);
+    this.dispose();
   }
 
   private dispose() {
