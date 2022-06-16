@@ -1,15 +1,15 @@
 {
+  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/mintplayer-ng-seo/src",
   "prefix": "mintplayer-ng-seo",
   "targets": {
     "build": {
       "executor": "@nrwl/angular:package",
-      "outputs": [
-        "dist/libs/mintplayer-ng-seo"
-      ],
+      "outputs": ["dist/libs/mintplayer-ng-seo"],
       "options": {
-        "project": "libs/mintplayer-ng-seo/ng-package.json"
+        "project": "libs/mintplayer-ng-seo/ng-package.json",
+        "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.json"
       },
       "configurations": {
         "production": {
@@ -23,9 +23,7 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/libs/mintplayer-ng-seo"
-      ],
+      "outputs": ["coverage/libs/mintplayer-ng-seo"],
       "options": {
         "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts",
         "passWithNoTests": true

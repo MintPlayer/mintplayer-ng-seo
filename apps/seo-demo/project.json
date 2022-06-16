@@ -1,13 +1,12 @@
 {
+  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/seo-demo/src",
   "prefix": "mintplayer-ng-seo",
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/seo-demo",
         "index": "apps/seo-demo/src/index.html",
@@ -15,13 +14,8 @@
         "polyfills": "apps/seo-demo/src/polyfills.ts",
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
-        "assets": [
-          "apps/seo-demo/src/favicon.ico",
-          "apps/seo-demo/src/assets"
-        ],
-        "styles": [
-          "apps/seo-demo/src/styles.scss"
-        ],
+        "assets": ["apps/seo-demo/src/favicon.ico", "apps/seo-demo/src/assets"],
+        "styles": ["apps/seo-demo/src/styles.scss"],
         "scripts": []
       },
       "configurations": {
@@ -86,9 +80,7 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": [
-        "coverage/apps/seo-demo"
-      ],
+      "outputs": ["coverage/apps/seo-demo"],
       "options": {
         "jestConfig": "apps/seo-demo/jest.config.ts",
         "passWithNoTests": true
