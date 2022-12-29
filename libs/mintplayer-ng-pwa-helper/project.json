@@ -1,4 +1,5 @@
 {
+  "name": "mintplayer-ng-pwa-helper",
   "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/mintplayer-ng-pwa-helper/src",
@@ -6,7 +7,7 @@
   "targets": {
     "build": {
       "executor": "@nrwl/angular:package",
-      "outputs": ["dist/libs/mintplayer-ng-pwa-helper"],
+      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-pwa-helper"],
       "options": {
         "project": "libs/mintplayer-ng-pwa-helper/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-pwa-helper/tsconfig.lib.json"
@@ -23,7 +24,7 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/mintplayer-ng-pwa-helper"],
+      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-pwa-helper"],
       "options": {
         "jestConfig": "libs/mintplayer-ng-pwa-helper/jest.config.ts",
         "passWithNoTests": true
