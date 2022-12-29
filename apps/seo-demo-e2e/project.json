@@ -1,4 +1,5 @@
 {
+  "name": "seo-demo-e2e",
   "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "apps/seo-demo-e2e/src",
   "projectType": "application",
