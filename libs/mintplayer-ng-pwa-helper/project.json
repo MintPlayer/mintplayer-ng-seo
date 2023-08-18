@@ -6,11 +6,12 @@
   "prefix": "mintplayer-ng-seo",
   "targets": {
     "build": {
-      "executor": "@nrwl/angular:package",
+      "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-pwa-helper"],
       "options": {
         "project": "libs/mintplayer-ng-pwa-helper/ng-package.json",
-        "tsConfig": "libs/mintplayer-ng-pwa-helper/tsconfig.lib.json"
+        "tsConfig": "libs/mintplayer-ng-pwa-helper/tsconfig.lib.json",
+        "updateBuildableProjectDepsInPackageJson": true
       },
       "configurations": {
         "production": {
@@ -23,7 +24,7 @@
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-pwa-helper"],
       "options": {
         "jestConfig": "libs/mintplayer-ng-pwa-helper/jest.config.ts",
@@ -31,7 +32,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
       "options": {
         "lintFilePatterns": [
           "libs/mintplayer-ng-pwa-helper/src/**/*.ts",
