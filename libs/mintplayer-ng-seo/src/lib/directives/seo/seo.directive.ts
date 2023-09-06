@@ -1,12 +1,10 @@
-import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
+import { APP_BASE_HREF } from '@angular/common';
 import { Directive, Inject, Input, OnDestroy, Optional } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationExtras, Params, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
 import { BehaviorSubject, combineLatest, filter, map, Observable, Subject, takeUntil } from 'rxjs';
 import { SeoTags } from '../../interfaces/seo-tags';
-// import { SeoInformation } from '../../interfaces/seo-information';
-import { CommandsAndExtras } from '../../interfaces/commands-and-extras';
 
 @Directive({
   selector: '[seo]'
@@ -16,12 +14,20 @@ export class SeoDirective implements OnDestroy {
   constructor(
     private titleService: Title,
     private metaService: Meta,
-    @Inject(DOCUMENT) document: any,
     router: Router,
     @Optional() @Inject(ROUTER) advancedRouter?: IRouter,
     @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string) {
-    this.document = <Document>document;
     this.router = advancedRouter || router;
+
+    this.extras$ = combineLatest([this.queryParams$, this.fragment$])
+      .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
+
+    this.standardUrl$ = combineLatest([this.commands$, this.extras$])
+      .pipe(map(([commands, extras]) => {
+        const standardTree = this.router.createUrlTree(commands, extras ?? undefined);
+        const standardUrl = this.router.serializeUrl(standardTree);
+        return standardUrl;
+      }));
 
     this.fullStandardUrl$ = this.standardUrl$
       .pipe(map((standardUrl) => {
@@ -32,15 +38,6 @@ export class SeoDirective implements OnDestroy {
         }
       }));
 
-    // this.fullCanonicalUrl$ = this.canonicalUrl$
-    //   .pipe(map((canonicalUrl) => {
-    //     if (this.baseUrl) {
-    //       return this.baseUrl + canonicalUrl;
-    //     } else {
-    //       return canonicalUrl;
-    //     }
-    //   }));
-    
     combineLatest([this.title$, this.description$, this.fullStandardUrl$])
       .pipe(filter(([title, description, fullStandardUrl]) => {
         return !!title && !!description && !!fullStandardUrl;
@@ -52,22 +49,19 @@ export class SeoDirective implements OnDestroy {
       });
   }
 
-  private document: Document;
   private router: Router | IRouter;
   private tags: SeoTags | null = null;
 
   private destroyed$ = new Subject();
-  // private information$ = new BehaviorSubject<SeoInformation | null>(null);
   private title$ = new BehaviorSubject<string>('');
   private description$ = new BehaviorSubject<string>('');
-  private standardUrl$ = new BehaviorSubject<string | null>(null);
-  //private canonicalUrl$ = new BehaviorSubject<string | null>(null);
+  private commands$ = new BehaviorSubject<any[]>([]);
+  private queryParams$ = new BehaviorSubject<Params | null>(null);
+  private fragment$ = new BehaviorSubject<string | null>(null);
+  private extras$: Observable<NavigationExtras | null>;
+  private standardUrl$: Observable<string | null>;
   private fullStandardUrl$: Observable<string | null>;
-  //private fullCanonicalUrl$: Observable<string | null>;
 
-  // @Input() public set seo(value: SeoInformation) {
-  //   this.information$.next(value);
-  // }
   @Input() public set title(value: string) {
     this.title$.next(value);
   }
@@ -75,17 +69,15 @@ export class SeoDirective implements OnDestroy {
     this.description$.next(value);
   }
 
-  @Input() public set standardUrl(value: CommandsAndExtras) {
-    const standardTree = this.router.createUrlTree(value.commands, value.extras);
-    const standardUrl = this.router.serializeUrl(standardTree);
-    this.standardUrl$.next(standardUrl);
+  @Input() set commands(value: any[]) {
+    this.commands$.next(value);
   }
-
-  // @Input() public set canonicalUrl(value: CommandsAndExtras) {
-  //   const canonicalTree = this.router.createUrlTree(value.commands, value.extras);
-  //   const canonicalUrl = this.router.serializeUrl(canonicalTree);
-  //   this.canonicalUrl$.next(canonicalUrl);
-  // }
+  @Input() set queryParams(value: Params | undefined | null) {
+    this.queryParams$.next(value ?? null);
+  }
+  @Input() set fragment(value: string | undefined | null) {
+    this.fragment$.next(value ?? null);
+  }
 
   ngOnDestroy() {
     this.removeTags(this.tags);
@@ -95,7 +87,6 @@ export class SeoDirective implements OnDestroy {
   private addTags(url: string, title: string, description: string) {
     const ogTags = this.addOpenGraphTags(url, title, description);
     const basicTags = this.addBasicTags(url, title, description);
-    // const canonicalTag = this.addCanonicalTag(canonical);
 
     return <SeoTags>{ ogTags, basicTags };
   }
@@ -103,7 +94,6 @@ export class SeoDirective implements OnDestroy {
     if (seoTags) {
       this.removeBasicTags(seoTags);
       this.removeOpenGraphTags(seoTags);
-      // this.removeCanonicalTag(seoTags);
     }
   }
   //#endregion
@@ -135,19 +125,4 @@ export class SeoDirective implements OnDestroy {
     });
   }
   //#endregion
-  // //#region Canonical url
-  // private addCanonicalTag(url: string) {
-  //   const link = this.document.createElement('link');
-  //   link.setAttribute('rel', 'canonical');
-  //   link.setAttribute('href', url);
-  //   this.document.head.appendChild(link);
-
-  //   return link;
-  // }
-  // private removeCanonicalTag(seoTags: SeoTags) {
-  //   this.document.querySelectorAll('link[rel=canonical]').forEach((link) => {
-  //     link.remove();
-  //   });
-  // }
-  // //#endregion
 }
