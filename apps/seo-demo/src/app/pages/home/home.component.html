@@ -1,7 +1,8 @@
 <ng-container [jsonLd]="{title: 'Whatever ' + counter, artist: 'Oasis'}" [minify]="false"></ng-container>
-<ng-container [seo]="{ title: 'Hello world ' + counter, description: 'Welcome ' + counter }" [standardUrl]="{ commands: ['/'], extras: { queryParams: { lang: ''} } }" [canonicalUrl]="{ commands: ['/'] }"></ng-container>
-<ng-container [hrefLang]="{ en: { commands: ['/'], extras: { queryParams: { lang: null, id: counter } } } }"></ng-container>
-<ng-container [hrefLang]="{ fr: { commands: ['/'], extras: { queryParams: { lang: 'fr', id: counter } } } }"></ng-container>
-<ng-container [hrefLang]="{ nl: { commands: ['/'], extras: { queryParams: { lang: 'nl', id: counter } } } }"></ng-container>
+<ng-container seo [title]="'Hello world ' + counter" [description]="'Welcome ' + counter" [commands]='["/"]' [queryParams]="{ lang: null }" [fragment]="null"></ng-container>
+<ng-container [hrefLang]="'en'" [commands]="['/']" [queryParams]="{ lang: null, id: counter }" [fragment]="null"></ng-container>
+<ng-container [hrefLang]="'fr'" [commands]="['/']" [queryParams]="{ lang: 'fr', id: counter }" [fragment]="null"></ng-container>
+<ng-container [hrefLang]="'nl'" [commands]="['/']" [queryParams]="{ lang: 'nl', id: counter }" [fragment]="null"></ng-container>
+<ng-container canonicalUrl [commands]='["/"]' [queryParams]="{}" [fragment]="null"></ng-container>
 
 <button (click)="counter = counter + 1">Increment counter</button>

@@ -1,12 +1,10 @@
-import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
+import { APP_BASE_HREF } from '@angular/common';
 import { Directive, Inject, Input, OnDestroy, Optional } from '@angular/core';
-import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationExtras, Params, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, combineLatest, filter, map, Observable, Subject, takeUntil } from 'rxjs';
-import { SeoTags } from '../../interfaces/seo-tags';
-import { SeoInformation } from '../../interfaces/seo-information';
-import { CommandsAndExtras } from '../../interfaces/commands-and-extras';
+import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
 
 @Directive({
   selector: '[seo]'
@@ -16,12 +14,20 @@ export class SeoDirective implements OnDestroy {
   constructor(
     private titleService: Title,
     private metaService: Meta,
-    @Inject(DOCUMENT) document: any,
     router: Router,
     @Optional() @Inject(ROUTER) advancedRouter?: IRouter,
     @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string) {
-    this.document = <Document>document;
     this.router = advancedRouter || router;
+
+    this.extras$ = combineLatest([this.queryParams$, this.fragment$])
+      .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
+
+    this.standardUrl$ = combineLatest([this.commands$, this.extras$])
+      .pipe(map(([commands, extras]) => {
+        const standardTree = this.router.createUrlTree(commands, extras ?? undefined);
+        const standardUrl = this.router.serializeUrl(standardTree);
+        return standardUrl;
+      }));
 
     this.fullStandardUrl$ = this.standardUrl$
       .pipe(map((standardUrl) => {
@@ -32,114 +38,76 @@ export class SeoDirective implements OnDestroy {
         }
       }));
 
-    this.fullCanonicalUrl$ = this.canonicalUrl$
-      .pipe(map((canonicalUrl) => {
-        if (this.baseUrl) {
-          return this.baseUrl + canonicalUrl;
-        } else {
-          return canonicalUrl;
-        }
-      }));
-    
-    combineLatest([this.information$, this.fullStandardUrl$, this.fullCanonicalUrl$])
-      .pipe(filter(([information, fullStandardUrl, fullCanonicalUrl]) => {
-        return !!information && !!fullStandardUrl && !!fullCanonicalUrl;
-      }))
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe(([information, fullStandardUrl, fullCanonicalUrl]) => {
-        this.removeTags(this.tags);
-        this.tags = this.addTags(<string>fullStandardUrl, <string>fullCanonicalUrl, (<SeoInformation>information).title, (<SeoInformation>information).description);
+    combineLatest([this.title$, this.description$, this.fullStandardUrl$])
+      .pipe(filter(([title, description, fullStandardUrl]) => !!title && !!description && !!fullStandardUrl))
+      .pipe(takeUntilDestroyed())
+      .subscribe(([title, description, fullStandardUrl]) => {
+        this.createOrUpdateTag(fullStandardUrl ?? undefined, 'og:url', undefined, undefined);
+        this.createOrUpdateTag(title, 'og:title', undefined, undefined);
+        this.createOrUpdateTag(description, 'og:description', undefined, undefined);
+
+        this.titleService.setTitle(title);
+
+        this.createOrUpdateTag(description, undefined, 'description', 'description');
       });
   }
 
-  private document: Document;
+  private createOrUpdateTag(content?: string, property?: string, name?: string, itemprop?: string) {
+    const key = property || name;
+    if (!key) {
+      throw 'At least the property or name must be specified';
+    }
+
+    const existingTag = this.tags[key];
+    if (existingTag) {
+      content && (existingTag.content = content);
+      property && existingTag.setAttribute('property', property);
+      name && (existingTag.name = name);
+      itemprop && existingTag.setAttribute('itemprop', itemprop);
+    } else {
+      const tag = {};
+      content && Object.assign(tag, { content });
+      property && Object.assign(tag, { property });
+      name && Object.assign(tag, { name });
+      itemprop && Object.assign(tag, { itemprop });
+
+      this.tags[key] = this.metaService.addTag(tag);
+    }
+  }
+
   private router: Router | IRouter;
-  private tags: SeoTags | null = null;
+  private tags: Record<string, HTMLMetaElement | null> = {};
 
-  private destroyed$ = new Subject();
-  private information$ = new BehaviorSubject<SeoInformation | null>(null);
-  private standardUrl$ = new BehaviorSubject<string | null>(null);
-  private canonicalUrl$ = new BehaviorSubject<string | null>(null);
+  private title$ = new BehaviorSubject<string>('');
+  private description$ = new BehaviorSubject<string>('');
+  private commands$ = new BehaviorSubject<any[]>([]);
+  private queryParams$ = new BehaviorSubject<Params | null>(null);
+  private fragment$ = new BehaviorSubject<string | null>(null);
+  private extras$: Observable<NavigationExtras | null>;
+  private standardUrl$: Observable<string | null>;
   private fullStandardUrl$: Observable<string | null>;
-  private fullCanonicalUrl$: Observable<string | null>;
 
-  @Input() public set seo(value: SeoInformation) {
-    this.information$.next(value);
+  @Input() public set title(value: string) {
+    this.title$.next(value);
+  }
+  @Input() public set description(value: string) {
+    this.description$.next(value);
   }
 
-  @Input() public set standardUrl(value: CommandsAndExtras) {
-    const standardTree = this.router.createUrlTree(value.commands, value.extras);
-    const standardUrl = this.router.serializeUrl(standardTree);
-    this.standardUrl$.next(standardUrl);
+  @Input() set commands(value: any[]) {
+    this.commands$.next(value);
   }
-
-  @Input() public set canonicalUrl(value: CommandsAndExtras) {
-    const canonicalTree = this.router.createUrlTree(value.commands, value.extras);
-    const canonicalUrl = this.router.serializeUrl(canonicalTree);
-    this.canonicalUrl$.next(canonicalUrl);
+  @Input() set queryParams(value: Params | undefined | null) {
+    this.queryParams$.next(value ?? null);
+  }
+  @Input() set fragment(value: string | undefined | null) {
+    this.fragment$.next(value ?? null);
   }
 
   ngOnDestroy() {
-    this.removeTags(this.tags);
-  }
-
-  //#region All tags
-  private addTags(url: string, canonical: string, title: string, description: string) {
-    const ogTags = this.addOpenGraphTags(url, title, description);
-    const basicTags = this.addBasicTags(url, title, description);
-    const canonicalTag = this.addCanonicalTag(canonical);
-
-    return <SeoTags>{ ogTags, basicTags, canonicalTag };
-  }
-  private removeTags(seoTags: SeoTags | null) {
-    if (seoTags) {
-      this.removeBasicTags(seoTags);
-      this.removeOpenGraphTags(seoTags);
-      this.removeCanonicalTag(seoTags);
-    }
-  }
-  //#endregion
-
-  //#region Basic tags
-  private addBasicTags(url: string, title: string, description: string) {
-    this.titleService.setTitle(title);
-    return this.metaService.addTags([
-      { name: 'description', itemprop: 'description', content: description },
-    ]);
-  }
-  private removeBasicTags(seoTags: SeoTags) {
-    seoTags.basicTags.forEach((tag) => {
-      this.metaService.removeTagElement(tag);
+    Object.values(this.tags).forEach((tag) => {
+      tag && tag.remove();
     });
   }
-  //#endregion
-  //#region Open-graph tags
-  private addOpenGraphTags(url: string, title: string, description: string) {
-    return this.metaService.addTags([
-      { property: 'og:url', content: url },
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-    ]);
-  }
-  private removeOpenGraphTags(seoTags: SeoTags) {
-    seoTags.ogTags.forEach((tag) => {
-      this.metaService.removeTagElement(tag);
-    });
-  }
-  //#endregion
-  //#region Canonical url
-  private addCanonicalTag(url: string) {
-    const link = this.document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', url);
-    this.document.head.appendChild(link);
 
-    return link;
-  }
-  private removeCanonicalTag(seoTags: SeoTags) {
-    this.document.querySelectorAll('link[rel=canonical]').forEach((link) => {
-      link.remove();
-    });
-  }
-  //#endregion
 }

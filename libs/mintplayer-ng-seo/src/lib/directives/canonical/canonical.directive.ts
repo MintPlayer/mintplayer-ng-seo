@@ -1,59 +1,55 @@
 import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Directive, Inject, Input, OnDestroy, Optional, Renderer2 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationExtras, Params, Router } from '@angular/router';
-import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
+import { IRouter, ROUTER } from '@mintplayer/ng-router-provider';
+import { BehaviorSubject, Observable, Subject, combineLatest, map } from 'rxjs';
 
 @Directive({
-  selector: '[hrefLang]'
+  selector: '[canonicalUrl]',
 })
-export class HrefLangDirective implements OnDestroy {
-
+export class CanonicalUrlDirective implements OnDestroy {
+  
   constructor(
     private renderer: Renderer2,
     @Inject(DOCUMENT) document: any,
     router: Router,
     @Optional() @Inject(ROUTER) advancedRouter?: IRouter,
-    @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string) {
-    this.document = <Document>document;
+    @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string,
+  ) {
     this.router = advancedRouter || router;
+    this.document = <Document>document;
 
     this.extras$ = combineLatest([this.queryParams$, this.fragment$])
       .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
 
-    combineLatest([this.language$, this.commands$, this.extras$])
+    combineLatest([this.commands$, this.extras$])
       .pipe(takeUntilDestroyed())
-      .subscribe(([language, commands, extras]) => {
+      .subscribe(([commands, extras]) => {
         const created = !this.linkElement;
         if (!this.linkElement) {
           this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
-          this.linkElement.rel = 'alternate';
+          this.linkElement.rel = 'canonical';
         }
         
-        this.linkElement.hreflang = language!;
-
         const tree = this.router.createUrlTree(commands, extras ?? undefined);
-        const href = this.router.serializeUrl(tree);
-        this.linkElement.href = this.baseUrl ? this.baseUrl + href : href;
+        const canonicalUrl = this.router.serializeUrl(tree);
+        this.linkElement.href = this.baseUrl ? this.baseUrl + canonicalUrl : canonicalUrl;
 
         created && this.renderer.appendChild(this.document.head, this.linkElement);
       });
   }
 
-  private document: Document;
   private router: Router | IRouter;
+  private document: Document;
   private linkElement?: HTMLLinkElement;
 
-  private language$ = new BehaviorSubject<string | null>(null);
   private commands$ = new BehaviorSubject<any[]>([]);
   private queryParams$ = new BehaviorSubject<Params | null>(null);
   private fragment$ = new BehaviorSubject<string | null>(null);
   private extras$: Observable<NavigationExtras | null>;
+  private destroyed$ = new Subject();
 
-  @Input() set hrefLang(value: string) {
-    this.language$.next(value);
-  }
   @Input() set commands(value: any[]) {
     this.commands$.next(value);
   }
@@ -65,7 +61,7 @@ export class HrefLangDirective implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroyed$.next(true);
     this.linkElement?.remove();
   }
-
 }
