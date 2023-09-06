@@ -32,23 +32,23 @@ export class SeoDirective implements OnDestroy {
         }
       }));
 
-    this.fullCanonicalUrl$ = this.canonicalUrl$
-      .pipe(map((canonicalUrl) => {
-        if (this.baseUrl) {
-          return this.baseUrl + canonicalUrl;
-        } else {
-          return canonicalUrl;
-        }
-      }));
+    // this.fullCanonicalUrl$ = this.canonicalUrl$
+    //   .pipe(map((canonicalUrl) => {
+    //     if (this.baseUrl) {
+    //       return this.baseUrl + canonicalUrl;
+    //     } else {
+    //       return canonicalUrl;
+    //     }
+    //   }));
     
-    combineLatest([this.title$, this.description$, this.fullStandardUrl$, this.fullCanonicalUrl$])
-      .pipe(filter(([title, description, fullStandardUrl, fullCanonicalUrl]) => {
-        return !!title && !!description && !!fullStandardUrl && !!fullCanonicalUrl;
+    combineLatest([this.title$, this.description$, this.fullStandardUrl$])
+      .pipe(filter(([title, description, fullStandardUrl]) => {
+        return !!title && !!description && !!fullStandardUrl;
       }))
       .pipe(takeUntil(this.destroyed$))
-      .subscribe(([title, description, fullStandardUrl, fullCanonicalUrl]) => {
+      .subscribe(([title, description, fullStandardUrl]) => {
         this.removeTags(this.tags);
-        this.tags = this.addTags(<string>fullStandardUrl, <string>fullCanonicalUrl, title, description);
+        this.tags = this.addTags(fullStandardUrl!, title, description);
       });
   }
 
@@ -61,9 +61,9 @@ export class SeoDirective implements OnDestroy {
   private title$ = new BehaviorSubject<string>('');
   private description$ = new BehaviorSubject<string>('');
   private standardUrl$ = new BehaviorSubject<string | null>(null);
-  private canonicalUrl$ = new BehaviorSubject<string | null>(null);
+  //private canonicalUrl$ = new BehaviorSubject<string | null>(null);
   private fullStandardUrl$: Observable<string | null>;
-  private fullCanonicalUrl$: Observable<string | null>;
+  //private fullCanonicalUrl$: Observable<string | null>;
 
   // @Input() public set seo(value: SeoInformation) {
   //   this.information$.next(value);
@@ -81,29 +81,29 @@ export class SeoDirective implements OnDestroy {
     this.standardUrl$.next(standardUrl);
   }
 
-  @Input() public set canonicalUrl(value: CommandsAndExtras) {
-    const canonicalTree = this.router.createUrlTree(value.commands, value.extras);
-    const canonicalUrl = this.router.serializeUrl(canonicalTree);
-    this.canonicalUrl$.next(canonicalUrl);
-  }
+  // @Input() public set canonicalUrl(value: CommandsAndExtras) {
+  //   const canonicalTree = this.router.createUrlTree(value.commands, value.extras);
+  //   const canonicalUrl = this.router.serializeUrl(canonicalTree);
+  //   this.canonicalUrl$.next(canonicalUrl);
+  // }
 
   ngOnDestroy() {
     this.removeTags(this.tags);
   }
 
   //#region All tags
-  private addTags(url: string, canonical: string, title: string, description: string) {
+  private addTags(url: string, title: string, description: string) {
     const ogTags = this.addOpenGraphTags(url, title, description);
     const basicTags = this.addBasicTags(url, title, description);
-    const canonicalTag = this.addCanonicalTag(canonical);
+    // const canonicalTag = this.addCanonicalTag(canonical);
 
-    return <SeoTags>{ ogTags, basicTags, canonicalTag };
+    return <SeoTags>{ ogTags, basicTags };
   }
   private removeTags(seoTags: SeoTags | null) {
     if (seoTags) {
       this.removeBasicTags(seoTags);
       this.removeOpenGraphTags(seoTags);
-      this.removeCanonicalTag(seoTags);
+      // this.removeCanonicalTag(seoTags);
     }
   }
   //#endregion
@@ -135,19 +135,19 @@ export class SeoDirective implements OnDestroy {
     });
   }
   //#endregion
-  //#region Canonical url
-  private addCanonicalTag(url: string) {
-    const link = this.document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', url);
-    this.document.head.appendChild(link);
+  // //#region Canonical url
+  // private addCanonicalTag(url: string) {
+  //   const link = this.document.createElement('link');
+  //   link.setAttribute('rel', 'canonical');
+  //   link.setAttribute('href', url);
+  //   this.document.head.appendChild(link);
 
-    return link;
-  }
-  private removeCanonicalTag(seoTags: SeoTags) {
-    this.document.querySelectorAll('link[rel=canonical]').forEach((link) => {
-      link.remove();
-    });
-  }
-  //#endregion
+  //   return link;
+  // }
+  // private removeCanonicalTag(seoTags: SeoTags) {
+  //   this.document.querySelectorAll('link[rel=canonical]').forEach((link) => {
+  //     link.remove();
+  //   });
+  // }
+  // //#endregion
 }
