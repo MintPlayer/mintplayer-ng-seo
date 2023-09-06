@@ -26,26 +26,23 @@ export class CanonicalUrlDirective implements OnDestroy {
     combineLatest([this.commands$, this.extras$])
       .pipe(takeUntilDestroyed())
       .subscribe(([commands, extras]) => {
-        this.dispose();
-        const link = <HTMLLinkElement>this.renderer.createElement('link');
-        link.rel = 'canonical';
+        const created = !this.linkElement;
+        if (!this.linkElement) {
+          this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
+          this.linkElement.rel = 'canonical';
+        }
         
         const tree = this.router.createUrlTree(commands, extras ?? undefined);
         const canonicalUrl = this.router.serializeUrl(tree);
-        if (this.baseUrl) {
-          link.href = this.baseUrl + canonicalUrl;
-        } else {
-          link.href = canonicalUrl;
-        }
+        this.linkElement.href = this.baseUrl ? this.baseUrl + canonicalUrl : canonicalUrl;
 
-        this.renderer.appendChild(this.document.head, link);
-        this.tags.push(link);
+        created && this.renderer.appendChild(this.document.head, this.linkElement);
       });
   }
 
   private router: Router | IRouter;
   private document: Document;
-  private tags: HTMLLinkElement[] = [];
+  private linkElement?: HTMLLinkElement;
 
   private commands$ = new BehaviorSubject<any[]>([]);
   private queryParams$ = new BehaviorSubject<Params | null>(null);
@@ -65,10 +62,6 @@ export class CanonicalUrlDirective implements OnDestroy {
 
   ngOnDestroy() {
     this.destroyed$.next(true);
-    this.dispose();
-  }
-
-  private dispose() {
-    this.tags.forEach(tag => tag.remove());
+    this.linkElement?.remove();
   }
 }

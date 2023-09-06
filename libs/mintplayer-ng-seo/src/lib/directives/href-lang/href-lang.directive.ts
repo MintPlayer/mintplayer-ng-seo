@@ -3,8 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Directive, Inject, Input, OnDestroy, Optional, Renderer2 } from '@angular/core';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, Observable, Subject, combineLatest, map, takeUntil } from 'rxjs';
-import { CommandsAndExtras } from '../../interfaces/commands-and-extras';
+import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
 
 @Directive({
   selector: '[hrefLang]'
@@ -24,35 +23,33 @@ export class HrefLangDirective implements OnDestroy {
       .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
 
     combineLatest([this.language$, this.commands$, this.extras$])
-      .pipe(takeUntil(this.destroyed$))
+      .pipe(takeUntilDestroyed())
       .subscribe(([language, commands, extras]) => {
-        this.dispose();
-        const link = <HTMLLinkElement>this.renderer.createElement('link');
-        link.rel = 'alternate';
-        link.hreflang = language!;
+        const created = !this.linkElement;
+        if (!this.linkElement) {
+          this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
+          this.linkElement.rel = 'alternate';
+        }
+        
+        this.linkElement.hreflang = language!;
 
         const tree = this.router.createUrlTree(commands, extras ?? undefined);
-        if (this.baseUrl) {
-          link.href = this.baseUrl + this.router.serializeUrl(tree);
-        } else {
-          link.href = this.router.serializeUrl(tree);
-        }
+        const href = this.router.serializeUrl(tree);
+        this.linkElement.href = this.baseUrl ? this.baseUrl + href : href;
 
-        this.renderer.appendChild(this.document.head, link);
-        this.tags.push(link);
+        created && this.renderer.appendChild(this.document.head, this.linkElement);
       });
   }
 
   private document: Document;
   private router: Router | IRouter;
-  private tags: HTMLLinkElement[] = [];
+  private linkElement?: HTMLLinkElement;
 
   private language$ = new BehaviorSubject<string | null>(null);
   private commands$ = new BehaviorSubject<any[]>([]);
   private queryParams$ = new BehaviorSubject<Params | null>(null);
   private fragment$ = new BehaviorSubject<string | null>(null);
   private extras$: Observable<NavigationExtras | null>;
-  private destroyed$ = new Subject();
 
   @Input() set hrefLang(value: string) {
     this.language$.next(value);
@@ -68,11 +65,7 @@ export class HrefLangDirective implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroyed$.next(true);
-    this.dispose();
+    this.linkElement?.remove();
   }
 
-  private dispose() {
-    this.tags.forEach((tag) => tag.remove());
-  }
 }

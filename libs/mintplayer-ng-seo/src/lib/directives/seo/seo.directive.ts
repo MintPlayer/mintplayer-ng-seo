@@ -1,10 +1,10 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { Directive, Inject, Input, OnDestroy, Optional } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, combineLatest, filter, map, Observable, Subject, takeUntil } from 'rxjs';
-import { SeoTags } from '../../interfaces/seo-tags';
+import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
 
 @Directive({
   selector: '[seo]'
@@ -39,20 +39,45 @@ export class SeoDirective implements OnDestroy {
       }));
 
     combineLatest([this.title$, this.description$, this.fullStandardUrl$])
-      .pipe(filter(([title, description, fullStandardUrl]) => {
-        return !!title && !!description && !!fullStandardUrl;
-      }))
-      .pipe(takeUntil(this.destroyed$))
+      .pipe(filter(([title, description, fullStandardUrl]) => !!title && !!description && !!fullStandardUrl))
+      .pipe(takeUntilDestroyed())
       .subscribe(([title, description, fullStandardUrl]) => {
-        this.removeTags(this.tags);
-        this.tags = this.addTags(fullStandardUrl!, title, description);
+        this.createOrUpdateTag(fullStandardUrl ?? undefined, 'og:url', undefined, undefined);
+        this.createOrUpdateTag(title, 'og:title', undefined, undefined);
+        this.createOrUpdateTag(description, 'og:description', undefined, undefined);
+
+        this.titleService.setTitle(title);
+
+        this.createOrUpdateTag(description, undefined, 'description', 'description');
       });
   }
 
-  private router: Router | IRouter;
-  private tags: SeoTags | null = null;
+  private createOrUpdateTag(content?: string, property?: string, name?: string, itemprop?: string) {
+    const key = property || name;
+    if (!key) {
+      throw 'At least the property or name must be specified';
+    }
 
-  private destroyed$ = new Subject();
+    const existingTag = this.tags[key];
+    if (existingTag) {
+      content && (existingTag.content = content);
+      property && existingTag.setAttribute('property', property);
+      name && (existingTag.name = name);
+      itemprop && existingTag.setAttribute('itemprop', itemprop);
+    } else {
+      const tag = {};
+      content && Object.assign(tag, { content });
+      property && Object.assign(tag, { property });
+      name && Object.assign(tag, { name });
+      itemprop && Object.assign(tag, { itemprop });
+
+      this.tags[key] = this.metaService.addTag(tag);
+    }
+  }
+
+  private router: Router | IRouter;
+  private tags: Record<string, HTMLMetaElement | null> = {};
+
   private title$ = new BehaviorSubject<string>('');
   private description$ = new BehaviorSubject<string>('');
   private commands$ = new BehaviorSubject<any[]>([]);
@@ -80,49 +105,9 @@ export class SeoDirective implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.removeTags(this.tags);
-  }
-
-  //#region All tags
-  private addTags(url: string, title: string, description: string) {
-    const ogTags = this.addOpenGraphTags(url, title, description);
-    const basicTags = this.addBasicTags(url, title, description);
-
-    return <SeoTags>{ ogTags, basicTags };
-  }
-  private removeTags(seoTags: SeoTags | null) {
-    if (seoTags) {
-      this.removeBasicTags(seoTags);
-      this.removeOpenGraphTags(seoTags);
-    }
-  }
-  //#endregion
-
-  //#region Basic tags
-  private addBasicTags(url: string, title: string, description: string) {
-    this.titleService.setTitle(title);
-    return this.metaService.addTags([
-      { name: 'description', itemprop: 'description', content: description },
-    ]);
-  }
-  private removeBasicTags(seoTags: SeoTags) {
-    seoTags.basicTags.forEach((tag) => {
-      this.metaService.removeTagElement(tag);
+    Object.values(this.tags).forEach((tag) => {
+      tag && tag.remove();
     });
   }
-  //#endregion
-  //#region Open-graph tags
-  private addOpenGraphTags(url: string, title: string, description: string) {
-    return this.metaService.addTags([
-      { property: 'og:url', content: url },
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-    ]);
-  }
-  private removeOpenGraphTags(seoTags: SeoTags) {
-    seoTags.ogTags.forEach((tag) => {
-      this.metaService.removeTagElement(tag);
-    });
-  }
-  //#endregion
+
 }
