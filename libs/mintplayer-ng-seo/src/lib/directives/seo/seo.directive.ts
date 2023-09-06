@@ -5,7 +5,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
 import { BehaviorSubject, combineLatest, filter, map, Observable, Subject, takeUntil } from 'rxjs';
 import { SeoTags } from '../../interfaces/seo-tags';
-import { SeoInformation } from '../../interfaces/seo-information';
+// import { SeoInformation } from '../../interfaces/seo-information';
 import { CommandsAndExtras } from '../../interfaces/commands-and-extras';
 
 @Directive({
@@ -41,14 +41,14 @@ export class SeoDirective implements OnDestroy {
         }
       }));
     
-    combineLatest([this.information$, this.fullStandardUrl$, this.fullCanonicalUrl$])
-      .pipe(filter(([information, fullStandardUrl, fullCanonicalUrl]) => {
-        return !!information && !!fullStandardUrl && !!fullCanonicalUrl;
+    combineLatest([this.title$, this.description$, this.fullStandardUrl$, this.fullCanonicalUrl$])
+      .pipe(filter(([title, description, fullStandardUrl, fullCanonicalUrl]) => {
+        return !!title && !!description && !!fullStandardUrl && !!fullCanonicalUrl;
       }))
       .pipe(takeUntil(this.destroyed$))
-      .subscribe(([information, fullStandardUrl, fullCanonicalUrl]) => {
+      .subscribe(([title, description, fullStandardUrl, fullCanonicalUrl]) => {
         this.removeTags(this.tags);
-        this.tags = this.addTags(<string>fullStandardUrl, <string>fullCanonicalUrl, (<SeoInformation>information).title, (<SeoInformation>information).description);
+        this.tags = this.addTags(<string>fullStandardUrl, <string>fullCanonicalUrl, title, description);
       });
   }
 
@@ -57,14 +57,22 @@ export class SeoDirective implements OnDestroy {
   private tags: SeoTags | null = null;
 
   private destroyed$ = new Subject();
-  private information$ = new BehaviorSubject<SeoInformation | null>(null);
+  // private information$ = new BehaviorSubject<SeoInformation | null>(null);
+  private title$ = new BehaviorSubject<string>('');
+  private description$ = new BehaviorSubject<string>('');
   private standardUrl$ = new BehaviorSubject<string | null>(null);
   private canonicalUrl$ = new BehaviorSubject<string | null>(null);
   private fullStandardUrl$: Observable<string | null>;
   private fullCanonicalUrl$: Observable<string | null>;
 
-  @Input() public set seo(value: SeoInformation) {
-    this.information$.next(value);
+  // @Input() public set seo(value: SeoInformation) {
+  //   this.information$.next(value);
+  // }
+  @Input() public set title(value: string) {
+    this.title$.next(value);
+  }
+  @Input() public set description(value: string) {
+    this.description$.next(value);
   }
 
   @Input() public set standardUrl(value: CommandsAndExtras) {
