@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MockModule } from 'ng-mocks';
+import { SeoModule } from '@mintplayer/ng-seo';
 
 import { AboutComponent } from './about.component';
 
@@ -8,6 +10,9 @@ describe('AboutComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [
+        MockModule(SeoModule),
+      ],
       declarations: [AboutComponent],
     }).compileComponents();
   });
