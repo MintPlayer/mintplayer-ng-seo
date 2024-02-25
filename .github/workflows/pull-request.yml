@@ -6,17 +6,17 @@ on:
 
 jobs:
   build:
-  
+
     name: npm-publish
     runs-on: ubuntu-latest
-    
-    permissions: 
+
+    permissions:
       contents: read
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    
+
     - name: Setup node
       uses: actions/setup-node@v2
       with:
@@ -24,9 +24,10 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-    
+
     - name: Build
-      run: npm run nx run-many -- --target=build --projects=seo-demo --configuration=production
+      run: npm run build -- --configuration=production
 
     - name: Test
-      run: npm run nx run-many -- --target=test --projects=seo-demo --watch=false --browsers=ChromeHeadless
+      run: npm run test --watch=false --parallel=true
+
