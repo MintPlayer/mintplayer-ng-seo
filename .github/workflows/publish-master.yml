@@ -6,18 +6,18 @@ on:
 
 jobs:
   build:
-  
+
     name: npm-publish
     runs-on: ubuntu-latest
-    
-    permissions: 
+
+    permissions:
       contents: read
-      packages: write 
-    
+      packages: write
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    
+
     - name: Setup node
       uses: actions/setup-node@v2
       with:
@@ -25,12 +25,12 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-    
+
     - name: Build
-      run: npm run nx run-many -- --target=build --projects=seo-demo --configuration=production
+      run: npm run build -- --configuration=production
 
     - name: Test
-      run: npm run nx run-many -- --target=test --projects=seo-demo --watch=false --browsers=ChromeHeadless --coverage --coverageReporters=lcovonly
+      run: npm run test --watch=false --parallel=true
 
     ## ng-json-ld
     - name: Upload code coverage report
@@ -38,7 +38,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/libs/mintplayer-ng-json-ld
-      
+
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:
@@ -61,7 +61,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/libs/mintplayer-ng-pwa-helper
-      
+
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:
@@ -84,7 +84,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage/libs/mintplayer-ng-seo
-      
+
     - name: Push to NPM
       uses: JS-DevTools/npm-publish@v1
       with:

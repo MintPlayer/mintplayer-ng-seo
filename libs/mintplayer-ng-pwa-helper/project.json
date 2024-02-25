@@ -10,8 +10,7 @@
       "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-pwa-helper"],
       "options": {
         "project": "libs/mintplayer-ng-pwa-helper/ng-package.json",
-        "tsConfig": "libs/mintplayer-ng-pwa-helper/tsconfig.lib.json",
-        "updateBuildableProjectDepsInPackageJson": true
+        "tsConfig": "libs/mintplayer-ng-pwa-helper/tsconfig.lib.json"
       },
       "configurations": {
         "production": {

@@ -10,8 +10,7 @@
       "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-seo"],
       "options": {
         "project": "libs/mintplayer-ng-seo/ng-package.json",
-        "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.json",
-        "updateBuildableProjectDepsInPackageJson": true
+        "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.json"
       },
       "configurations": {
         "production": {
