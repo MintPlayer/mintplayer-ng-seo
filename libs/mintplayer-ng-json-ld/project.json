@@ -27,18 +27,11 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-json-ld"],
       "options": {
-        "jestConfig": "libs/mintplayer-ng-json-ld/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/mintplayer-ng-json-ld/jest.config.ts"
       }
     },
     "lint": {
-      "executor": "@nx/linter:eslint",
-      "options": {
-        "lintFilePatterns": [
-          "libs/mintplayer-ng-json-ld/src/**/*.ts",
-          "libs/mintplayer-ng-json-ld/src/**/*.html"
-        ]
-      }
+      "executor": "@nx/eslint:lint"
     }
   },
   "tags": []

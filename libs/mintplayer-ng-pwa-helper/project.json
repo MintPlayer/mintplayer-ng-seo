@@ -27,18 +27,11 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-pwa-helper"],
       "options": {
-        "jestConfig": "libs/mintplayer-ng-pwa-helper/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "libs/mintplayer-ng-pwa-helper/jest.config.ts"
       }
     },
     "lint": {
-      "executor": "@nx/linter:eslint",
-      "options": {
-        "lintFilePatterns": [
-          "libs/mintplayer-ng-pwa-helper/src/**/*.ts",
-          "libs/mintplayer-ng-pwa-helper/src/**/*.html"
-        ]
-      }
+      "executor": "@nx/eslint:lint"
     }
   },
   "tags": []
