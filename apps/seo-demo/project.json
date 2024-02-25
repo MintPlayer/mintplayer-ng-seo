@@ -75,8 +75,10 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/apps/seo-demo"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
+        "codeCoverage": true,
+        "coverageReporters": ["lcovonly"],
         "jestConfig": "apps/seo-demo/jest.config.ts"
       }
     }

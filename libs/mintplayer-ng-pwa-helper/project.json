@@ -24,8 +24,10 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-pwa-helper"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
+        "codeCoverage": true,
+        "coverageReporters": ["lcovonly"],
         "jestConfig": "libs/mintplayer-ng-pwa-helper/jest.config.ts"
       }
     },

@@ -24,8 +24,10 @@
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-seo"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
+        "codeCoverage": true,
+        "coverageReporters": ["lcovonly"],
         "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts"
       }
     },
