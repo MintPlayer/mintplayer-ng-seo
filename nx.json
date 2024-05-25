@@ -1,7 +1,4 @@
 {
-  "affected": {
-    "defaultBase": "master"
-  },
   "cli": {
     "packageManager": "npm"
   },
@@ -63,5 +60,6 @@
       "!{projectRoot}/src/test-setup.[jt]s"
     ]
   },
-  "nxCloudAccessToken": "MTZiOWQxYWItMDAyZi00NTM1LTg3MTMtZDFhODNiMjUxMWUyfHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "MTZiOWQxYWItMDAyZi00NTM1LTg3MTMtZDFhODNiMjUxMWUyfHJlYWQtd3JpdGU=",
+  "defaultBase": "master"
 }
