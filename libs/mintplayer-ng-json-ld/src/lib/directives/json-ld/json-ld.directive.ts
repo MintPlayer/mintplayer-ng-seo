@@ -4,7 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 
 @Directive({
-  selector: '[jsonLd]'
+  selector: '[jsonLd]',
+  standalone: true,
 })
 export class JsonLdDirective implements OnDestroy {
 

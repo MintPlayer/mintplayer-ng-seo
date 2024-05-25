@@ -6,7 +6,8 @@ import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
 import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
 
 @Directive({
-  selector: '[hrefLang]'
+  selector: '[hrefLang]',
+  standalone: true
 })
 export class HrefLangDirective implements OnDestroy {
 

@@ -7,7 +7,8 @@ import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
 import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
 
 @Directive({
-  selector: '[seo]'
+  selector: '[seo]',
+  standalone: true
 })
 export class SeoDirective implements OnDestroy {
 

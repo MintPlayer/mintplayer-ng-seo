@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { SeoDirective } from './seo.directive';
+import { provideRouter } from '@angular/router';
 
 @Component({
   selector: 'seo-test-component',
@@ -35,12 +35,14 @@ describe('HrefLangDirective', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        RouterTestingModule.withRoutes([
+      providers: [
+        provideRouter([
           { path: '', component: HomePageComponent },
           { path: 'about', component: AboutPageComponent }
         ])
+      ],
+      imports: [
+        CommonModule,
       ],
       declarations: [
         // Unit to test
