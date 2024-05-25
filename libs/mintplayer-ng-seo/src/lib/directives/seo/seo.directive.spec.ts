@@ -43,11 +43,11 @@ describe('HrefLangDirective', () => {
       ],
       imports: [
         CommonModule,
-      ],
-      declarations: [
+
         // Unit to test
         SeoDirective,
-
+      ],
+      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,

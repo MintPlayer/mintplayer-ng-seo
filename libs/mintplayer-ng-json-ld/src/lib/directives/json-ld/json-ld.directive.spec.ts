@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { JsonLdDirective } from './json-ld.directive';
+import { provideRouter } from '@angular/router';
 
 @Component({
   selector: 'json-ld-test-component',
@@ -32,17 +32,19 @@ describe('JsonLdDirective', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        RouterTestingModule.withRoutes([
+      providers: [
+        provideRouter([
           { path: '', component: HomePageComponent },
           { path: 'about', component: AboutPageComponent }
         ])
       ],
-      declarations: [
+      imports: [
+        CommonModule,
+
         // Unit to test
         JsonLdDirective,
-
+      ],
+      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,

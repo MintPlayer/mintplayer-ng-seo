@@ -58,11 +58,11 @@ describe('HrefLangDirective', () => {
       ],
       imports: [
         CommonModule,
-      ],
-      declarations: [
+
         // Unit to test
         HrefLangDirective,
-
+      ],
+      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
