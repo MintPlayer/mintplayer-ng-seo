@@ -7,7 +7,7 @@ import { PwaService } from '@mintplayer/ng-pwa-helper';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  constructor(private pwaService: PwaService) {
+  constructor(pwaService: PwaService) {
     this.isPwa = pwaService.isPwa();
   }
 

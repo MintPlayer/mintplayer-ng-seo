@@ -7,6 +7,7 @@ import { BehaviorSubject, Observable, Subject, combineLatest, map } from 'rxjs';
 
 @Directive({
   selector: '[canonicalUrl]',
+  standalone: true
 })
 export class CanonicalUrlDirective implements OnDestroy {
   

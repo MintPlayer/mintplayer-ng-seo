@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NavigationExtras } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import { NavigationExtras, provideRouter } from '@angular/router';
 import { HrefLangDirective } from './href-lang.directive';
 
 interface MockCommandsAndExtras {
@@ -51,17 +50,19 @@ describe('HrefLangDirective', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        CommonModule,
-        RouterTestingModule.withRoutes([
+      providers: [
+        provideRouter([
           { path: '', component: HomePageComponent },
           { path: 'about', component: AboutPageComponent }
         ])
       ],
-      declarations: [
+      imports: [
+        CommonModule,
+
         // Unit to test
         HrefLangDirective,
-
+      ],
+      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
