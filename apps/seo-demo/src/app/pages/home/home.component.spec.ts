@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MockModule } from 'ng-mocks';
-import { JsonLdModule } from '@mintplayer/ng-json-ld';
-import { SeoModule } from '@mintplayer/ng-seo';
+import { MockDirective } from 'ng-mocks';
+import { JsonLdDirective } from '@mintplayer/ng-json-ld';
+import { CanonicalUrlDirective, HrefLangDirective, SeoDirective } from '@mintplayer/ng-seo';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
@@ -11,8 +11,10 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        MockModule(JsonLdModule),
-        MockModule(SeoModule),
+        MockDirective(JsonLdDirective),
+        MockDirective(SeoDirective),
+        MockDirective(HrefLangDirective),
+        MockDirective(CanonicalUrlDirective),
       ],
       declarations: [
         // Unit to test
