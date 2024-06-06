@@ -15,7 +15,12 @@
         "polyfills": "apps/seo-demo/src/polyfills.ts",
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
-        "assets": ["apps/seo-demo/src/favicon.ico", "apps/seo-demo/src/assets"],
+        "assets": [
+          "apps/seo-demo/src/favicon.ico",
+          "apps/seo-demo/src/assets",
+          "apps/seo-demo/src/web.config",
+          "apps/seo-demo/src/nginx.conf"
+        ],
         "styles": ["apps/seo-demo/src/styles.scss"],
         "scripts": []
       },
