@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MockDirective } from 'ng-mocks';
-import { CanonicalUrlDirective } from '@mintplayer/ng-seo';
+import { CanonicalUrlDirective } from '@mintplayer/ng-seo/canonical-url';
 
 import { AboutComponent } from './about.component';
 
