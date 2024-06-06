@@ -1,19 +1,18 @@
 {
-  "name": "@mintplayer/ng-seo",
-  "private": false,
+  "name": "@mintplayer/ng-share-buttons",
   "version": "18.1.0",
+  "private": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/MintPlayer/mintplayer-ng-seo",
-    "directory": "libs/mintplayer-ng-seo"
+    "directory": "libs/mintplayer-ng-share-buttons"
   },
   "peerDependencies": {
     "@angular/common": "^18.0.0",
     "@angular/core": "^18.0.0",
     "@angular/router": "^18.0.0",
-    "@angular/platform-browser": "^18.0.0",
     "@mintplayer/ng-router-provider": "^18.1.0",
-    "@mintplayer/ng-base-url": "^18.1.0",
+    "@mintplayer/script-loader": "^1.3.0",
     "rxjs": "^7.8.0"
   },
   "dependencies": {

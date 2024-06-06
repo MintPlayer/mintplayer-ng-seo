@@ -1,0 +1,29 @@
+{
+  "name": "@mintplayer/script-loader",
+  "private": false,
+  "type": "module",
+  "version": "1.3.0",
+  "description": "Load a script and wait until it's ready",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MintPlayer/mintplayer-ng-seo",
+    "directory": "libs/mintplayer-script-loader"
+  },
+  "main": "./src/index.js",
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "typings": "./src/index.d.ts",
+  "author": {
+    "name": "Pieterjan De Clippel",
+    "url": "https://github.com/MintPlayer",
+    "email": "info@mintplayer.com"
+  },
+  "keywords": [
+    "script-loader",
+    "typescript"
+  ],
+  "sideEffects": false
+}
