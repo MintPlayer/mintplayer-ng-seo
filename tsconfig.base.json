@@ -15,11 +15,15 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@mintplayer/ng-json-ld": ["libs/mintplayer-ng-json-ld/src/index.ts"],
-      "@mintplayer/ng-pwa-helper": [
-        "libs/mintplayer-ng-pwa-helper/src/index.ts"
-      ],
-      "@mintplayer/ng-seo": ["libs/mintplayer-ng-seo/src/index.ts"]
+      "@mintplayer/ng-seo": ["libs/mintplayer-ng-seo/src/index.ts"],
+      "@mintplayer/ng-seo/*": ["libs/mintplayer-ng-seo/*"],
+      "@mintplayer/ng-base-url": ["libs/mintplayer-ng-base-url/src/index.ts"],
+      "@mintplayer/ng-base-url/*": ["libs/mintplayer-ng-base-url/*"],
+      "@mintplayer/ng-router": ["libs/mintplayer-ng-router/src/index.ts"],
+      "@mintplayer/ng-router-provider": ["libs/mintplayer-ng-router-provider/src/index.ts"],
+      "@mintplayer/ng-share-buttons": ["libs/mintplayer-ng-share-buttons/src/index.ts"],
+      "@mintplayer/ng-share-buttons/*": ["libs/mintplayer-ng-share-buttons/*"],
+      "@mintplayer/script-loader": ["libs/mintplayer-script-loader/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

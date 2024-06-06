@@ -1,0 +1,40 @@
+{
+  "name": "mintplayer-ng-share-buttons-demo",
+  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/mintplayer-ng-share-buttons/src",
+  "prefix": "mintplayer-ng-share-buttons",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:package",
+      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-share-buttons"],
+      "options": {
+        "project": "libs/mintplayer-ng-share-buttons/ng-package.json",
+        "tsConfig": "libs/mintplayer-ng-share-buttons/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/mintplayer-ng-share-buttons/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/mintplayer-ng-share-buttons/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-share-buttons"],
+      "options": {
+        "codeCoverage": true,
+        "coverageReporters": ["lcovonly"],
+        "coverageDirectory": "coverage/libs/mintplayer-ng-share-buttons",
+        "jestConfig": "libs/mintplayer-ng-share-buttons/jest.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  },
+  "tags": []
+}

@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MockDirective } from 'ng-mocks';
-import { JsonLdDirective } from '@mintplayer/ng-json-ld';
-import { CanonicalUrlDirective, HrefLangDirective, SeoDirective } from '@mintplayer/ng-seo';
+import { JsonLdDirective } from '@mintplayer/ng-seo/json-ld';
+import { SeoDirective } from '@mintplayer/ng-seo/seo';
+import { CanonicalUrlDirective } from '@mintplayer/ng-seo/canonical-url';
+import { HrefLangDirective } from '@mintplayer/ng-seo/href-lang';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {

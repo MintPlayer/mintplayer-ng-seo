@@ -1,0 +1,18 @@
+{
+  "name": "@mintplayer/ng-base-url",
+  "version": "18.1.0",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MintPlayer/mintplayer-ng-seo",
+    "directory": "libs/mintplayer-ng-base-url"
+  },
+  "peerDependencies": {
+    "@angular/common": "^18.0.0",
+    "@angular/core": "^18.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

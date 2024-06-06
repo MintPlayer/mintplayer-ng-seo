@@ -38,11 +38,12 @@ describe('AppComponent', () => {
         RouterTestingModule.withRoutes([
           { path: '', component: HomePageComponent },
           { path: 'about', component: AboutPageComponent }
-        ])
-      ],
-      declarations: [
+        ]),
+        
         // Unit to test
         AppComponent,
+      ],
+      declarations: [
         
         // Mock dependencies
         HomePageComponent,

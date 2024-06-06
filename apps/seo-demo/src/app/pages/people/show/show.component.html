@@ -1,0 +1,11 @@
+<div class="box">
+    show works!
+    <br>
+    Person {{ id }}
+
+    <p>
+        <facebook-share [shareRouterLink]='["/people", id]'></facebook-share>
+        <twitter-share [shareRouterLink]='["/people", id]'></twitter-share>
+        <linkedin-share [shareRouterLink]='["/people", id]'></linkedin-share>
+    </p>
+</div>
