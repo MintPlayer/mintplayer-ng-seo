@@ -15,11 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@mintplayer/ng-json-ld": ["libs/mintplayer-ng-json-ld/src/index.ts"],
-      "@mintplayer/ng-pwa-helper": [
-        "libs/mintplayer-ng-pwa-helper/src/index.ts"
-      ],
-      "@mintplayer/ng-seo": ["libs/mintplayer-ng-seo/src/index.ts"]
+      "@mintplayer/ng-seo": ["libs/mintplayer-ng-seo/src/index.ts"],
+      "@mintplayer/ng-seo/*": ["libs/mintplayer-ng-seo/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

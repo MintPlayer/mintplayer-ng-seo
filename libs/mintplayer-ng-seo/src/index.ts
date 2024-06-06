@@ -1,2 +1,2 @@
-export * from './lib/directives';
-export * from './lib/interfaces';
+export * from './lib/commands-and-extras';
+export * from './lib/seo-tags';

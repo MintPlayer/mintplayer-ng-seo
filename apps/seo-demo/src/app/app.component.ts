@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PwaService } from '@mintplayer/ng-pwa-helper';
+import { PwaService } from '@mintplayer/ng-seo/pwa';
 
 @Component({
   selector: 'mintplayer-ng-seo-root',
