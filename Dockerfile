@@ -20,6 +20,7 @@ RUN npm run build -- --configuration=production
 
 # Use official nginx image as the base image
 FROM nginx:latest
+LABEL org.opencontainers.image.source="https://github.com/MintPlayer/mintplayer-ng-seo"
 
 # Copy the build output to replace the default nginx contents.
 COPY --from=node_image /usr/local/app/dist/apps/seo-demo /usr/share/nginx/html
