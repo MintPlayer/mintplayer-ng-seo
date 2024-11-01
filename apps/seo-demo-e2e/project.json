@@ -1,26 +1,9 @@
 {
   "name": "seo-demo-e2e",
-  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
-  "sourceRoot": "apps/seo-demo-e2e/src",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "targets": {
-    "e2e": {
-      "executor": "@nx/cypress:cypress",
-      "options": {
-        "cypressConfig": "apps/seo-demo-e2e/cypress.json",
-        "devServerTarget": "seo-demo:serve:development"
-      },
-      "configurations": {
-        "production": {
-          "devServerTarget": "seo-demo:serve:production"
-        }
-      }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
-    }
-  },
-  "tags": [],
-  "implicitDependencies": ["seo-demo"]
+  "sourceRoot": "apps/seo-demo-e2e/src",
+  "implicitDependencies": ["seo-demo"],
+  "// targets": "to see all targets run: nx show project seo-demo-e2e --web",
+  "targets": {}
 }
