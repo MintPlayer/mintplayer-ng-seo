@@ -1,28 +1,34 @@
 {
   "name": "seo-demo",
-  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
+  "prefix": "app",
   "sourceRoot": "apps/seo-demo/src",
-  "prefix": "mintplayer-ng-seo",
+  "tags": [],
   "targets": {
     "build": {
-      "executor": "@angular-devkit/build-angular:browser",
+      "executor": "@angular-devkit/build-angular:application",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/seo-demo",
         "index": "apps/seo-demo/src/index.html",
-        "main": "apps/seo-demo/src/main.ts",
-        "polyfills": "apps/seo-demo/src/polyfills.ts",
+        "browser": "apps/seo-demo/src/main.ts",
+        "polyfills": ["zone.js"],
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
-          "apps/seo-demo/src/favicon.ico",
-          "apps/seo-demo/src/assets",
-          "apps/seo-demo/src/web.config",
-          "apps/seo-demo/src/nginx.conf"
+          {
+            "glob": "**/*",
+            "input": "apps/seo-demo/public"
+          }
         ],
         "styles": ["apps/seo-demo/src/styles.scss"],
-        "scripts": []
+        "scripts": [],
+        "server": "apps/seo-demo/src/main.server.ts",
+        "prerender": true,
+        "ssr": {
+          "entry": "apps/seo-demo/server.ts"
+        }
       },
       "configurations": {
         "production": {
@@ -38,21 +44,12 @@
               "maximumError": "4kb"
             }
           ],
-          "fileReplacements": [
-            {
-              "replace": "apps/seo-demo/src/environments/environment.ts",
-              "with": "apps/seo-demo/src/environments/environment.prod.ts"
-            }
-          ],
           "outputHashing": "all"
         },
         "development": {
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
-          "sourceMap": true,
-          "namedChunks": true
+          "sourceMap": true
         }
       },
       "defaultConfiguration": "production"
@@ -82,11 +79,17 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
         "jestConfig": "apps/seo-demo/jest.config.ts"
       }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "seo-demo:build",
+        "port": 4200,
+        "staticFilePath": "dist/apps/seo-demo/browser",
+        "spa": true
+      }
     }
-  },
-  "tags": []
+  }
 }

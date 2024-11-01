@@ -1,13 +1,12 @@
-import { ApplicationConfig } from "@angular/core";
-import { PreloadAllModules, provideRouter, withEnabledBlockingInitialNavigation, withPreloading } from "@angular/router";
-import { APP_ROUTES } from "./app.routes";
-import { provideAdvancedRouter } from "@mintplayer/ng-router";
-import { provideBaseHref } from "@mintplayer/ng-base-url";
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { appRoutes } from './app.routes';
+import { provideClientHydration } from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        provideRouter(APP_ROUTES, withPreloading(PreloadAllModules), withEnabledBlockingInitialNavigation()),
-        provideAdvancedRouter({ navigationDelay: 1000 }),
-        provideBaseHref(),
-    ]
-}
+  providers: [
+    provideClientHydration(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(appRoutes),
+  ],
+};

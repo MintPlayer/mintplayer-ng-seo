@@ -1,19 +1,14 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { PwaService } from '@mintplayer/ng-seo/pwa';
+import { RouterModule } from '@angular/router';
+import { NxWelcomeComponent } from './nx-welcome.component';
 
 @Component({
-  selector: 'mintplayer-ng-seo-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
   standalone: true,
-  imports: [RouterOutlet, RouterLink]
+  imports: [NxWelcomeComponent, RouterModule],
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  constructor(pwaService: PwaService) {
-    this.isPwa = pwaService.isPwa();
-  }
-
   title = 'seo-demo';
-  isPwa = false;
 }

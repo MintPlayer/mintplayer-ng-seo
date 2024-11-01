@@ -1,9 +1,7 @@
-/* eslint-disable */
 export default {
   displayName: 'seo-demo',
-
+  preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  globals: {},
   coverageDirectory: '../../coverage/apps/seo-demo',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
@@ -20,5 +18,4 @@ export default {
     'jest-preset-angular/build/serializers/ng-snapshot',
     'jest-preset-angular/build/serializers/html-comment',
   ],
-  preset: '../../jest.preset.js',
 };

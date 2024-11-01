@@ -1,1 +1,0 @@
-export * from './src/twitter-share/twitter-share.component';
