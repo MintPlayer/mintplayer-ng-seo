@@ -27,6 +27,7 @@
         "libs/mintplayer-ng-share-buttons/src/index.ts"
       ],
       "@mintplayer/ng-share-buttons/*": ["libs/mintplayer-ng-share-buttons/*"],
+      "@mintplayer/sc-loader": ["libs/sc-loader/src/index.ts"],
       "@mintplayer/script-loader": [
         "libs/mintplayer-script-loader/src/index.ts"
       ]

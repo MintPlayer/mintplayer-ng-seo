@@ -154,6 +154,25 @@ jobs:
         access: 'public'
         provenance: true
 
+    ## sc-loader
+    - name: Push to NPM
+      uses: JS-DevTools/npm-publish@v3
+      with:
+        package: 'dist/libs/sc-loader/package.json'
+        registry: 'https://registry.npmjs.org'
+        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        access: 'public'
+        provenance: true
+
+    - name: Push to Github
+      uses: JS-DevTools/npm-publish@v3
+      with:
+        package: 'dist/libs/mintplayer-ng-share-buttons/package.json'
+        registry: 'https://npm.pkg.github.com'
+        token: ${{ github.token }}
+        access: 'public'
+        provenance: true
+
     # Publish to GitHub Container Registry
     - name: Authenticate with GHCR
       uses: docker/login-action@v3

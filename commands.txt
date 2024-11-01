@@ -1,0 +1,1 @@
+npx nx g @nx/js:library --name=mintplayer-sc-loader --bundler vite --publishable --import-path @mintplayer/sc-loader --directory libs/sc-loader

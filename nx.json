@@ -46,6 +46,15 @@
     "@nx/eslint:lint": {
       "inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
       "cache": true
+    },
+    "@nx/vite:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "@nx/vite:test": {
+      "cache": true,
+      "inputs": ["default", "^production"]
     }
   },
   "namedInputs": {
@@ -62,5 +71,10 @@
   },
   "nxCloudAccessToken": "MTZiOWQxYWItMDAyZi00NTM1LTg3MTMtZDFhODNiMjUxMWUyfHJlYWQtd3JpdGU=",
   "defaultBase": "master",
-  "useLegacyCache": true
+  "useLegacyCache": true,
+  "release": {
+    "version": {
+      "preVersionCommand": "npx nx run-many -t build"
+    }
+  }
 }
