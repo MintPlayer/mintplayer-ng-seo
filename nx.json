@@ -69,5 +69,6 @@
       "style": "scss",
       "unitTestRunner": "jest"
     }
-  }
+  },
+  "defaultProject": "seo-demo"
 }
