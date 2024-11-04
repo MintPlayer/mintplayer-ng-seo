@@ -48,7 +48,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-ng-seo/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
 
     - name: Push to Github
@@ -65,7 +65,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-ng-base-url/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
         provenance: true
 
@@ -84,7 +84,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-ng-router-provider/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
         provenance: true
 
@@ -103,7 +103,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-ng-router/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
         provenance: true
 
@@ -122,7 +122,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-script-loader/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
         provenance: true
 
@@ -141,7 +141,7 @@ jobs:
       with:
         package: 'dist/libs/mintplayer-ng-share-buttons/package.json'
         registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_NODE_TO_NPMJS_COM }}
+        token: ${{ secrets.PUBLISH_TO_NPMJS }}
         access: 'public'
         provenance: true
 
