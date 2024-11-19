@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "es2020",
+    "module": "CommonJS",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
