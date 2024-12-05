@@ -1,8 +1,7 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { Component, Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter, Router, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { ADVANCED_ROUTER_CONFIG, AdvancedRouterConfig } from '@mintplayer/ng-router';
 import { ROUTER } from '@mintplayer/ng-router-provider';
 
@@ -14,23 +13,24 @@ describe('ExternalUrlService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule.withRoutes([
-          { path: '', component: HomeComponent }
-        ])
-      ],
-      declarations: [
         HomeComponent
       ],
-      providers: [{
-        provide: ROUTER,
-        useClass: MockAdvancedRouter
-      }, {
-        provide: APP_BASE_HREF,
-        useValue: 'http://localhost/'
-      }, {
-        provide: ADVANCED_ROUTER_CONFIG,
-        useValue: <AdvancedRouterConfig>{ }
-      }]
+      declarations: [],
+      providers: [
+        provideRouter([
+          { path: '', component: HomeComponent }
+        ]),
+        {
+          provide: ROUTER,
+          useClass: MockAdvancedRouter
+        }, {
+          provide: APP_BASE_HREF,
+          useValue: 'http://localhost/'
+        }, {
+          provide: ADVANCED_ROUTER_CONFIG,
+          useValue: <AdvancedRouterConfig>{ }
+        }
+      ]
     });
     service = TestBed.inject(ExternalUrlService);
   });
@@ -45,8 +45,7 @@ describe('ExternalUrlService', () => {
 })
 class MockAdvancedRouter {
 
-  constructor(private router: Router) {
-  }
+  constructor(private router: Router) {}
 
   createUrlTree(commands: any[], extras?: UrlCreationOptions) : UrlTree {
     const urlTree = new UrlTree();
@@ -79,7 +78,7 @@ class MockAdvancedRouter {
 
 @Component({
   selector: 'test-home-component',
+  standalone: true,
   template: `<h2>Home</h2>`
 })
-class HomeComponent {
-}
+class HomeComponent {}

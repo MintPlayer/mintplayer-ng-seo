@@ -6,6 +6,11 @@ import { provideRouter } from '@angular/router';
 
 @Component({
   selector: 'seo-test-component',
+  standalone: true,
+  imports: [
+    // Unit to test
+    SeoDirective,
+  ],
   template: `
     <ng-container seo
       [title]="'Hello world ' + counter"
@@ -20,12 +25,14 @@ class SeoTestComponent {
 
 @Component({
   selector: 'home-page',
+  standalone: true,
   template: `<h1>Home</h1>`
 })
 class HomePageComponent { }
 
 @Component({
   selector: 'about-page',
+  standalone: true,
   template: `<h1>About</h1>`
 })
 class AboutPageComponent { }
@@ -44,17 +51,14 @@ describe('HrefLangDirective', () => {
       imports: [
         CommonModule,
 
-        // Unit to test
-        SeoDirective,
-      ],
-      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
 
         // Testbench
         SeoTestComponent
-      ]
+      ],
+      declarations: []
     })
     .compileComponents();
 

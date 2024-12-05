@@ -2,14 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, inject, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Router, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { MockProvider } from 'ng-mocks';
 import { AdvancedRouter } from '../advanced-router/advanced-router.service';
 import { AdvancedRouterLinkDirective } from './advanced-router-link.directive';
 
 @Component({
   selector: 'advanced-router-link-test-component',
+  standalone: true,
+  imports: [AdvancedRouterLinkDirective, RouterOutlet],
   template: `
     <a [advRouterLink]='["/test", "home"]'>
       Home
@@ -29,8 +30,24 @@ describe('AdvancedRouterLinkDirective', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
+        
+        // Unit to test
         AdvancedRouterLinkDirective,
-        RouterTestingModule.withRoutes([
+
+        // Mock dependencies
+        AdvancedRouterLinkTestComponent,
+
+        MockHomePageComponent,
+        MockAboutPageComponent,
+      ],
+      declarations: [],
+      providers: [
+        {
+          provide: AdvancedRouter,
+          useClass: MockAdvancedRouter
+        },
+        MockProvider(Location),
+        provideRouter([
           { path: '', pathMatch: 'full', redirectTo: '/test' },
           {
             path: 'test',
@@ -41,19 +58,6 @@ describe('AdvancedRouterLinkDirective', () => {
             ]
           }
         ])
-      ],
-      declarations: [
-        AdvancedRouterLinkTestComponent,
-
-        MockHomePageComponent,
-        MockAboutPageComponent
-      ],
-      providers: [
-        {
-          provide: AdvancedRouter,
-          useClass: MockAdvancedRouter
-        },
-        MockProvider(Location),
       ]
     })
     .compileComponents();
@@ -118,12 +122,14 @@ class MockAdvancedRouter {
 
 @Component({
   selector: 'mock-home-page-component',
+  standalone: true,
   template: `<h1>Home</h1>`
 })
 class MockHomePageComponent {}
 
 @Component({
   selector: 'mock-about-page-component',
+  standalone: true,
   template: `<h1>About</h1>`
 })
 class MockAboutPageComponent {}
