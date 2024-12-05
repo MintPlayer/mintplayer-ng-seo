@@ -1,8 +1,7 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { Component, Injectable } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { AdvancedRouter, ADVANCED_ROUTER_CONFIG, AdvancedRouterConfig } from '@mintplayer/ng-router';
 
 import { TwitterShareComponent } from './twitter-share.component';
@@ -14,25 +13,26 @@ describe('TwitterShareComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule.withRoutes([
+        // Mock dependencies
+        AppComponent,
+        HomeComponent,
+      ],
+      declarations: [],
+      providers: [
+        provideRouter([
           { path: '', component: HomeComponent }
         ]),
-        TwitterShareComponent,
-      ],
-      declarations: [
-        AppComponent,
-        HomeComponent
-      ],
-      providers: [{
-        provide: AdvancedRouter,
-        useClass: MockAdvancedRouter
-      }, {
-        provide: APP_BASE_HREF,
-        useValue: 'http://localhost/'
-      }, {
-        provide: ADVANCED_ROUTER_CONFIG,
-        useValue: <AdvancedRouterConfig>{ }
-      }]
+        {
+          provide: AdvancedRouter,
+          useClass: MockAdvancedRouter
+        }, {
+          provide: APP_BASE_HREF,
+          useValue: 'http://localhost/'
+        }, {
+          provide: ADVANCED_ROUTER_CONFIG,
+          useValue: <AdvancedRouterConfig>{ }
+        }
+      ]
     })
     .compileComponents();
   });
@@ -52,9 +52,7 @@ describe('TwitterShareComponent', () => {
   providedIn: 'root'
 })
 class MockAdvancedRouter {
-
-  constructor(private router: Router) {
-  }
+  constructor(private router: Router) {}
 
   createUrlTree(commands: any[], extras?: UrlCreationOptions) : UrlTree {
     let urlTree = new UrlTree();
@@ -87,18 +85,23 @@ class MockAdvancedRouter {
 
 @Component({
   selector: 'test-app-component',
+  standalone: true,
+  imports: [RouterOutlet],
   template: `
     <h1>App</h1>
     <router-outlet></router-outlet>`
 })
-class AppComponent {
-}
+class AppComponent {}
 
 @Component({
   selector: 'test-home-component',
+  standalone: true,
+  imports: [
+    // Unit to test
+    TwitterShareComponent,
+  ],
   template: `
     <h2>Home</h2>
     <twitter-share [shareRouterLink]='[]'></twitter-share>`
 })
-class HomeComponent {
-}
+class HomeComponent {}

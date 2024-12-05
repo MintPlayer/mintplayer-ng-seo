@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { provideRouter } from '@angular/router';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -20,12 +20,16 @@ Object.defineProperty(window, 'matchMedia', {
 
 @Component({
   selector: 'home-page',
+  standalone: true,
+  imports: [],
   template: `<h1>Home</h1>`
 })
 class HomePageComponent { }
 
 @Component({
   selector: 'about-page',
+  standalone: true,
+  imports: [],
   template: `<h1>About</h1>`
 })
 class AboutPageComponent { }
@@ -35,20 +39,21 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CommonModule,
-        RouterTestingModule.withRoutes([
-          { path: '', component: HomePageComponent },
-          { path: 'about', component: AboutPageComponent }
-        ]),
-        
-        // Unit to test
-        AppComponent,
-      ],
-      declarations: [
         
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
+
+        // Unit to test
+        AppComponent,
       ],
+      declarations: [],
+      providers: [
+        provideRouter([
+          { path: '', component: HomePageComponent },
+          { path: 'about', component: AboutPageComponent }
+        ]),
+      ]
     }).compileComponents();
   });
 

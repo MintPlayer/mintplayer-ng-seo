@@ -6,6 +6,11 @@ import { provideRouter } from '@angular/router';
 
 @Component({
   selector: 'json-ld-test-component',
+  standalone: true,
+  imports: [
+    // Unit to test
+    JsonLdDirective,
+  ],
   template: `
     <ng-container
       [jsonLd]="{title: 'Whatever ' + counter, artist: 'Oasis'}"
@@ -17,12 +22,14 @@ class JsonLdTestComponent {
 
 @Component({
   selector: 'home-page',
+  standalone: true,
   template: `<h1>Home</h1>`
 })
 class HomePageComponent { }
 
 @Component({
   selector: 'about-page',
+  standalone: true,
   template: `<h1>About</h1>`
 })
 class AboutPageComponent { }
@@ -41,17 +48,14 @@ describe('JsonLdDirective', () => {
       imports: [
         CommonModule,
 
-        // Unit to test
-        JsonLdDirective,
-      ],
-      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
 
         // Testbench
-        JsonLdTestComponent
-      ]
+        JsonLdTestComponent,
+      ],
+      declarations: []
     })
     .compileComponents();
 

@@ -11,6 +11,11 @@ interface MockCommandsAndExtras {
 
 @Component({
   selector: 'href-lang-test-component',
+  standalone: true,
+  imports: [
+    // Unit to test
+    HrefLangDirective,
+  ],
   template: `
     <ng-container [hrefLang]="hrefLangData">
     </ng-container>`
@@ -35,12 +40,14 @@ class HrefLangTestComponent {
 
 @Component({
   selector: 'home-page',
+  standalone: true,
   template: `<h1>Home</h1>`
 })
 class HomePageComponent { }
 
 @Component({
   selector: 'about-page',
+  standalone: true,
   template: `<h1>About</h1>`
 })
 class AboutPageComponent { }
@@ -59,17 +66,14 @@ describe('HrefLangDirective', () => {
       imports: [
         CommonModule,
 
-        // Unit to test
-        HrefLangDirective,
-      ],
-      declarations: [
         // Mock dependencies
         HomePageComponent,
         AboutPageComponent,
 
         // Testbench
-        HrefLangTestComponent
-      ]
+        HrefLangTestComponent,
+      ],
+      declarations: []
     })
     .compileComponents();
 
