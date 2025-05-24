@@ -1,19 +1,19 @@
 {
   "name": "@mintplayer/ng-seo",
   "private": false,
-  "version": "19.0.0",
+  "version": "20.0.0-preview.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/MintPlayer/mintplayer-ng-seo",
     "directory": "libs/mintplayer-ng-seo"
   },
   "peerDependencies": {
-    "@angular/common": "^19.0.0",
-    "@angular/core": "^19.0.0",
-    "@angular/router": "^19.0.0",
-    "@angular/platform-browser": "^19.0.0",
-    "@mintplayer/ng-router-provider": "^19.0.0",
-    "@mintplayer/ng-base-url": "^19.0.0",
+    "@angular/common": "^20.0.0-rc.2",
+    "@angular/core": "^20.0.0-rc.2",
+    "@angular/router": "^20.0.0-rc.2",
+    "@angular/platform-browser": "^20.0.0-rc.2",
+    "@mintplayer/ng-router-provider": "^20.0.0-preview.1",
+    "@mintplayer/ng-base-url": "^20.0.0-preview.1",
     "rxjs": "^7.8.0"
   },
   "dependencies": {
