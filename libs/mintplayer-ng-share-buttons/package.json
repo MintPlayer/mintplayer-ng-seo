@@ -1,6 +1,6 @@
 {
   "name": "@mintplayer/ng-share-buttons",
-  "version": "20.0.0-preview.1",
+  "version": "20.0.0",
   "private": false,
   "repository": {
     "type": "git",
@@ -8,10 +8,10 @@
     "directory": "libs/mintplayer-ng-share-buttons"
   },
   "peerDependencies": {
-    "@angular/common": "^20.0.0-rc.2",
-    "@angular/core": "^20.0.0-rc.2",
-    "@angular/router": "^20.0.0-rc.2",
-    "@mintplayer/ng-router-provider": "^20.0.0-preview.1",
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/router": "^20.0.0",
+    "@mintplayer/ng-router-provider": "^20.0.0",
     "@mintplayer/script-loader": "^2.0.0",
     "rxjs": "^7.8.0"
   },
