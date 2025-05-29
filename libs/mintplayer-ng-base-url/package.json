@@ -1,6 +1,6 @@
 {
   "name": "@mintplayer/ng-base-url",
-  "version": "20.0.0-preview.1",
+  "version": "20.0.0",
   "private": false,
   "repository": {
     "type": "git",
@@ -8,8 +8,8 @@
     "directory": "libs/mintplayer-ng-base-url"
   },
   "peerDependencies": {
-    "@angular/common": "^20.0.0-rc.2",
-    "@angular/core": "^20.0.0-rc.2"
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"
