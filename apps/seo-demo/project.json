@@ -4,6 +4,7 @@
   "projectType": "application",
   "sourceRoot": "apps/seo-demo/src",
   "prefix": "mintplayer-ng-seo",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
@@ -84,9 +85,9 @@
       "options": {
         "codeCoverage": true,
         "coverageReporters": ["lcovonly"],
-        "jestConfig": "apps/seo-demo/jest.config.ts"
+        "jestConfig": "apps/seo-demo/jest.config.ts",
+        "tsConfig": "apps/seo-demo/tsconfig.spec.json"
       }
     }
-  },
-  "tags": []
+  }
 }

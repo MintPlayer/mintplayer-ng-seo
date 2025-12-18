@@ -1,4 +1,3 @@
-import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AdvancedRouterLinkDirective } from '@mintplayer/ng-router';
@@ -8,7 +7,7 @@ import { AdvancedRouterLinkDirective } from '@mintplayer/ng-router';
   templateUrl: './people.component.html',
   styleUrls: ['./people.component.scss'],
   standalone: true,
-  imports: [RouterOutlet, AdvancedRouterLinkDirective, NgFor],
+  imports: [RouterOutlet, AdvancedRouterLinkDirective],
 })
 export class PeopleComponent {
   numbers = [...Array(9).keys()];

@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/mintplayer-ng-base-url/src",
   "prefix": "mintplayer-ng-share-buttons",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
@@ -29,12 +30,12 @@
         "codeCoverage": true,
         "coverageReporters": ["lcovonly"],
         "coverageDirectory": "coverage/libs/mintplayer-ng-base-url",
-        "jestConfig": "libs/mintplayer-ng-base-url/jest.config.ts"
+        "jestConfig": "libs/mintplayer-ng-base-url/jest.config.ts",
+        "tsConfig": "libs/mintplayer-ng-base-url/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": []
+  }
 }

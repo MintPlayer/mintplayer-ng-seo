@@ -4,6 +4,7 @@
   "projectType": "library",
   "sourceRoot": "libs/mintplayer-ng-seo/src",
   "prefix": "mintplayer-ng-seo",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
@@ -28,12 +29,12 @@
       "options": {
         "codeCoverage": true,
         "coverageReporters": ["lcovonly"],
-        "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts"
+        "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts",
+        "tsConfig": "libs/mintplayer-ng-seo/tsconfig.spec.json"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
-  },
-  "tags": []
+  }
 }
