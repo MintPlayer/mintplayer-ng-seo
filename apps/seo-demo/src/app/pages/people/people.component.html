@@ -1,3 +1,5 @@
 <p>Here's a list of all the people:</p>
-<a [advRouterLink]='["/people", id]' *ngFor="let id of numbers">{{ id }}</a>
+@for (id of numbers; track id) {
+  <a [advRouterLink]='["/people", id]'>{{ id }}</a>
+}
 <router-outlet></router-outlet>
