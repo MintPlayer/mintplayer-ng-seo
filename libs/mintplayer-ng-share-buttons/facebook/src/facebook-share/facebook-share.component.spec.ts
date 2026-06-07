@@ -1,5 +1,5 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, inject } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { AdvancedRouter, ADVANCED_ROUTER_CONFIG, AdvancedRouterConfig } from '@mintplayer/ng-router';
@@ -53,10 +53,11 @@ describe('FacebookShareComponent', () => {
   providedIn: 'root'
 })
 class MockAdvancedRouter {
-  constructor(private router: Router) {}
+  private router = inject(Router);
+
 
   createUrlTree(commands: any[], extras?: UrlCreationOptions) : UrlTree {
-    let urlTree = new UrlTree();
+    const urlTree = new UrlTree();
 
     // Segments
     urlTree.root = new UrlSegmentGroup(

@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'mintplayer-ng-router-provider',
 

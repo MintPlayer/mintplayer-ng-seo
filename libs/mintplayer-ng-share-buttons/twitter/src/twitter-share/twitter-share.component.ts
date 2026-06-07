@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Params } from '@angular/router';
 import { ExternalUrlService } from '@mintplayer/ng-share-buttons';
@@ -12,10 +12,10 @@ import { BehaviorSubject, combineLatest, filter, take } from 'rxjs';
   standalone: true,
 })
 export class TwitterShareComponent implements AfterViewInit {
+  private externalUrlService = inject(ExternalUrlService);
 
-  constructor(
-    private externalUrlService: ExternalUrlService
-  ) {
+
+  constructor() {
     combineLatest([this.isViewInited$, this.commands$])
       .pipe(filter(([isViewInited, commands]) => !!isViewInited && !!commands))
       .pipe(takeUntilDestroyed())

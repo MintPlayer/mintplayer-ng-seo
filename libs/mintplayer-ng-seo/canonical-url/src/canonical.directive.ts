@@ -1,5 +1,5 @@
 import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
-import { Directive, Inject, Input, OnDestroy, Optional, Renderer2 } from '@angular/core';
+import { Directive, Input, OnDestroy, Renderer2, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { IRouter, ROUTER } from '@mintplayer/ng-router-provider';
@@ -10,14 +10,15 @@ import { BehaviorSubject, Observable, Subject, combineLatest, map } from 'rxjs';
   standalone: true
 })
 export class CanonicalUrlDirective implements OnDestroy {
+  private renderer = inject(Renderer2);
+  private baseUrl = inject(APP_BASE_HREF, { optional: true });
+
   
-  constructor(
-    private renderer: Renderer2,
-    @Inject(DOCUMENT) document: any,
-    router: Router,
-    @Optional() @Inject(ROUTER) advancedRouter?: IRouter,
-    @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string,
-  ) {
+  constructor() {
+    const document = inject(DOCUMENT);
+    const router = inject(Router);
+    const advancedRouter = inject<IRouter>(ROUTER, { optional: true });
+
     this.router = advancedRouter || router;
     this.document = <Document>document;
 

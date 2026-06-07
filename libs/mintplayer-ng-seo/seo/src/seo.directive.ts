@@ -1,5 +1,5 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { Directive, Inject, Input, OnDestroy, Optional } from '@angular/core';
+import { Directive, Input, OnDestroy, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -11,13 +11,15 @@ import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
   standalone: true
 })
 export class SeoDirective implements OnDestroy {
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
+  private baseUrl = inject(APP_BASE_HREF, { optional: true });
 
-  constructor(
-    private titleService: Title,
-    private metaService: Meta,
-    router: Router,
-    @Optional() @Inject(ROUTER) advancedRouter?: IRouter,
-    @Optional() @Inject(APP_BASE_HREF) private baseUrl?: string) {
+
+  constructor() {
+    const router = inject(Router);
+    const advancedRouter = inject<IRouter>(ROUTER, { optional: true });
+
     this.router = advancedRouter || router;
 
     this.extras$ = combineLatest([this.queryParams$, this.fragment$])

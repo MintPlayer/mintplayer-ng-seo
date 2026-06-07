@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, Inject, Input, OnDestroy, Renderer2 } from '@angular/core';
+import { Directive, Input, OnDestroy, Renderer2, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 
@@ -8,8 +8,13 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
   standalone: true,
 })
 export class JsonLdDirective implements OnDestroy {
+  private renderer = inject(Renderer2);
 
-  constructor(private renderer: Renderer2, @Inject(DOCUMENT) document: any) {
+
+  constructor() {
+    const renderer = this.renderer;
+    const document = inject(DOCUMENT);
+
     this.document = <Document>document;
     this.scriptTag = renderer.createElement('script');
     this.scriptTag.type = 'application/json';

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Params } from '@angular/router';
 import { BehaviorSubject, combineLatest, Subject, filter, take } from 'rxjs';
@@ -12,10 +12,10 @@ import { loadScript } from '@mintplayer/script-loader';
   standalone: true,
 })
 export class FacebookShareComponent implements AfterViewInit {
+  private externalUrlService = inject(ExternalUrlService);
 
-  constructor(
-    private externalUrlService: ExternalUrlService
-  ) {
+
+  constructor() {
     combineLatest([this.isViewInited$, this.commands$])
       .pipe(filter(([isViewInited, commands]) => !!isViewInited && !!commands))
       .pipe(takeUntilDestroyed())
