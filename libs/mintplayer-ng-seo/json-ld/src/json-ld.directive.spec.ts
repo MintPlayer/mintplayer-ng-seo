@@ -66,4 +66,12 @@ describe('JsonLdDirective', () => {
   it('should create an instance', () => {
     expect(fixture).toBeTruthy();
   });
+
+  it('should emit a script[type="application/ld+json"] containing the bound object', () => {
+    const script = document.head.querySelector('script[type="application/ld+json"]');
+    expect(script).toBeTruthy();
+
+    const parsed = JSON.parse(script!.textContent ?? '');
+    expect(parsed).toEqual({ title: 'Whatever 0', artist: 'Oasis' });
+  });
 });

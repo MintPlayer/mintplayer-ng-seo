@@ -17,7 +17,9 @@ export class JsonLdDirective implements OnDestroy {
 
     this.document = <Document>document;
     this.scriptTag = renderer.createElement('script');
-    this.scriptTag.type = 'application/json';
+    // Structured data must be 'application/ld+json' — crawlers (Google etc.) only parse JSON-LD
+    // from that MIME type; 'application/json' scripts are ignored as structured data.
+    this.scriptTag.type = 'application/ld+json';
     this.renderer.appendChild(this.document.head, this.scriptTag);
 
     combineLatest([this.jsonLd$, this.minify$])
