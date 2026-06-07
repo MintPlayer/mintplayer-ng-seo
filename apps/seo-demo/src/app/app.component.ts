@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { PwaService } from '@mintplayer/ng-seo/pwa';
 
@@ -10,7 +10,9 @@ import { PwaService } from '@mintplayer/ng-seo/pwa';
   imports: [RouterOutlet, RouterLink]
 })
 export class AppComponent {
-  constructor(pwaService: PwaService) {
+  constructor() {
+    const pwaService = inject(PwaService);
+
     this.isPwa = pwaService.isPwa();
   }
 

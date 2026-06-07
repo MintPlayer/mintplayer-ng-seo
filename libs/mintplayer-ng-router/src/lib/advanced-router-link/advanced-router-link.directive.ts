@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Attribute, Directive, ElementRef, HostListener, Inject, Input, Optional, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, Renderer2, inject, HostAttributeToken } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
 import { AdvancedRouter } from '../advanced-router/advanced-router.service';
 import { ADVANCED_ROUTER_CONFIG } from '../advanced-router-config.provider';
@@ -12,18 +12,22 @@ import { AdvancedRouterConfig } from '../interfaces/advanced-router-config';
   standalone: true
 })
 export class AdvancedRouterLinkDirective extends RouterLink {
+  private advancedRouter = inject(AdvancedRouter);
+  private nativeRoute: ActivatedRoute;
+  private advancedRouterConfig = inject<AdvancedRouterConfig>(ADVANCED_ROUTER_CONFIG, { optional: true });
 
-  constructor(
-    private advancedRouter: AdvancedRouter,
-    private nativeRoute: ActivatedRoute,
-    @Attribute('tabindex') tabIndexAttribute: string|null|undefined,
-    nativeRouter: Router,
-    renderer: Renderer2,
-    element: ElementRef,
-    nativeLocationStrategy: LocationStrategy,
-    @Optional() @Inject(ADVANCED_ROUTER_CONFIG) private advancedRouterConfig?: AdvancedRouterConfig
-  ) {
+
+  constructor() {
+    const nativeRoute = inject(ActivatedRoute);
+    const tabIndexAttribute = inject(new HostAttributeToken('tabindex'), { optional: true });
+    const nativeRouter = inject(Router);
+    const renderer = inject(Renderer2);
+    const element = inject(ElementRef);
+    const nativeLocationStrategy = inject(LocationStrategy);
+
     super(nativeRouter, nativeRoute, tabIndexAttribute, renderer, element, nativeLocationStrategy);
+  
+    this.nativeRoute = nativeRoute;
   }
 
   private nativeCommands: any[] = [];

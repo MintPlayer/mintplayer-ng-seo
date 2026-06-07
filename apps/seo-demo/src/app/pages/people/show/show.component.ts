@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FacebookShareComponent } from '@mintplayer/ng-share-buttons/facebook';
 import { LinkedinShareComponent } from '@mintplayer/ng-share-buttons/linkedin';
@@ -16,7 +16,9 @@ import { TwitterShareComponent } from '@mintplayer/ng-share-buttons/twitter';
   ]
 })
 export class ShowComponent {
-  constructor(private route: ActivatedRoute) {
+  private route = inject(ActivatedRoute);
+
+  constructor() {
     // We must detect the change of the url-parameter ourselfs
     this.route.paramMap.subscribe((params) => {
       if (params.has('id')) {

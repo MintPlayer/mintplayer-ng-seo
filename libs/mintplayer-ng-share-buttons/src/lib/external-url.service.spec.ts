@@ -1,5 +1,5 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { Component, Injectable } from '@angular/core';
+import { Component, Injectable, inject as inject_1 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { ADVANCED_ROUTER_CONFIG, AdvancedRouterConfig } from '@mintplayer/ng-router';
@@ -44,8 +44,8 @@ describe('ExternalUrlService', () => {
   providedIn: 'root'
 })
 class MockAdvancedRouter {
+  private router = inject_1(Router);
 
-  constructor(private router: Router) {}
 
   createUrlTree(commands: any[], extras?: UrlCreationOptions) : UrlTree {
     const urlTree = new UrlTree();

@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Inject, Injectable, Optional } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Params, Router } from '@angular/router';
 import { IRouter, ROUTER } from '@mintplayer/ng-router-provider';
 
@@ -7,12 +7,10 @@ import { IRouter, ROUTER } from '@mintplayer/ng-router-provider';
   providedIn: 'root'
 })
 export class ExternalUrlService {
+  private router = inject(Router);
+  private locationStrategy = inject(LocationStrategy);
+  private advancedRouter = inject<IRouter>(ROUTER, { optional: true });
 
-  constructor(
-    private router: Router,
-    private locationStrategy: LocationStrategy,
-    @Optional() @Inject(ROUTER) private advancedRouter?: IRouter,
-  ) {}
 
   buildUrl(commands: any[], queryParams: Params | null) {
     const router = this.advancedRouter || this.router;

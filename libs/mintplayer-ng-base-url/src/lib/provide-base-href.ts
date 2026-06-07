@@ -34,11 +34,11 @@ export function applyOptions(rawBaseUrl: string | null, options?: BaseUrlOptions
     return null;
   }
   
-  if (!!options) {
+  if (options) {
     // Insert the subdomain
     if (options.subdomain) {
       if (!(/^https?:\/\/localhost\b/.test(rawBaseUrl) || /https?:\/\/[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}\b/.test(rawBaseUrl))) {
-        const rgxSchemeHost = new RegExp(/^(?<scheme>https?):\/\/(?<host>[^\/]+)/);
+        const rgxSchemeHost = new RegExp(/^(?<scheme>https?):\/\/(?<host>[^/]+)/);
         const match = rawBaseUrl.match(rgxSchemeHost);
         if (match) {
           rawBaseUrl = rawBaseUrl.replace(rgxSchemeHost, `$1://${options.subdomain}.$2`);

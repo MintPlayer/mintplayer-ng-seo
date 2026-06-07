@@ -7,13 +7,16 @@
   "tags": [],
   "targets": {
     "build": {
-      "executor": "@angular-devkit/build-angular:browser",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@angular-devkit/build-angular:application",
+      "outputs": ["{workspaceRoot}/dist/apps/seo-demo"],
       "options": {
-        "outputPath": "dist/apps/seo-demo",
+        "outputPath": {
+          "base": "dist/apps/seo-demo",
+          "browser": ""
+        },
         "index": "apps/seo-demo/src/index.html",
-        "main": "apps/seo-demo/src/main.ts",
-        "polyfills": "apps/seo-demo/src/polyfills.ts",
+        "browser": "apps/seo-demo/src/main.ts",
+        "polyfills": ["apps/seo-demo/src/polyfills.ts"],
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -48,9 +51,7 @@
           "outputHashing": "all"
         },
         "development": {
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true

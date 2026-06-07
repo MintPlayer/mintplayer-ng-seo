@@ -1,4 +1,4 @@
-import { Inject, Injectable, Optional } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { ActivatedRoute, NavigationBehaviorOptions, NavigationExtras, Params, Router, UrlCreationOptions, UrlTree } from '@angular/router';
 import { IRouter } from '@mintplayer/ng-router-provider';
@@ -10,12 +10,10 @@ import { UrlWithQueryParams } from '../interfaces/url-with-query-params';
   providedIn: 'root'
 })
 export class AdvancedRouter implements IRouter {
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private advancedRouterConfig = inject<AdvancedRouterConfig>(ADVANCED_ROUTER_CONFIG, { optional: true });
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    @Optional() @Inject(ADVANCED_ROUTER_CONFIG) private advancedRouterConfig?: AdvancedRouterConfig) {
-  }
 
   /**
    * Navigate based on the provided array of commands and a starting point.
