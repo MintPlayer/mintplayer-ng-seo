@@ -1,7 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, Input, OnDestroy, Renderer2, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { Directive, OnDestroy, Renderer2, booleanAttribute, effect, inject, input } from '@angular/core';
 
 @Directive({
   selector: '[jsonLd]',
@@ -10,6 +8,8 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 export class JsonLdDirective implements OnDestroy {
   private renderer = inject(Renderer2);
 
+  readonly jsonLd = input<unknown>(null);
+  readonly minify = input(true, { transform: booleanAttribute });
 
   constructor() {
     const renderer = this.renderer;
@@ -22,35 +22,13 @@ export class JsonLdDirective implements OnDestroy {
     this.scriptTag.type = 'application/ld+json';
     this.renderer.appendChild(this.document.head, this.scriptTag);
 
-    combineLatest([this.jsonLd$, this.minify$])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([jsonLd, minify]) => {
-        this.scriptTag.innerHTML = JSON.stringify(jsonLd, null, minify ? undefined : 2);
-      });
+    effect(() => {
+      this.scriptTag.innerHTML = JSON.stringify(this.jsonLd(), null, this.minify() ? undefined : 2);
+    });
   }
 
   private document: Document;
   private scriptTag: HTMLScriptElement;
-
-  private jsonLd$ = new BehaviorSubject<unknown>(null);
-  private minify$ = new BehaviorSubject<boolean>(true);
-
-  //#region jsonLd
-  public get jsonLd() {
-    return this.jsonLd$.value;
-  }
-  @Input() set jsonLd(json: unknown) {
-    this.jsonLd$.next(json);
-  }
-  //#endregion
-  //#region minify
-  public get minify() {
-    return this.minify$.value;
-  }
-  @Input() public set minify(value: boolean) {
-    this.minify$.next(value);
-  }
-  //#endregion
 
   ngOnDestroy() {
     if (this.scriptTag) {

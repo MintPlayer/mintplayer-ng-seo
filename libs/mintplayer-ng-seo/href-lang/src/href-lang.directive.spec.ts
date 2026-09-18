@@ -73,7 +73,6 @@ describe('HrefLangDirective', () => {
         // Testbench
         HrefLangTestComponent,
       ],
-      declarations: []
     })
     .compileComponents();
 

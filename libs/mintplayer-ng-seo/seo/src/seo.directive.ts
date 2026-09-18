@@ -1,10 +1,8 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { Directive, Input, OnDestroy, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Directive, OnDestroy, computed, effect, inject, input } from '@angular/core';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
 
 @Directive({
   selector: '[seo]',
@@ -15,6 +13,23 @@ export class SeoDirective implements OnDestroy {
   private metaService = inject(Meta);
   private baseUrl = inject(APP_BASE_HREF, { optional: true });
 
+  readonly title = input('');
+  readonly description = input('');
+  readonly commands = input<any[]>([]);
+  readonly queryParams = input<Params | undefined | null>(null);
+  readonly fragment = input<string | undefined | null>(null);
+
+  private readonly fullStandardUrl = computed(() => {
+    const extras = <NavigationExtras>{
+      queryParams: this.queryParams() ?? null,
+      fragment: this.fragment() ?? null,
+    };
+
+    const standardTree = this.router.createUrlTree(this.commands(), extras);
+    const standardUrl = this.router.serializeUrl(standardTree);
+
+    return this.baseUrl ? this.baseUrl + standardUrl : standardUrl;
+  });
 
   constructor() {
     const router = inject(Router);
@@ -22,37 +37,25 @@ export class SeoDirective implements OnDestroy {
 
     this.router = advancedRouter || router;
 
-    this.extras$ = combineLatest([this.queryParams$, this.fragment$])
-      .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
+    effect(() => {
+      const title = this.title();
+      const description = this.description();
+      const fullStandardUrl = this.fullStandardUrl();
 
-    this.standardUrl$ = combineLatest([this.commands$, this.extras$])
-      .pipe(map(([commands, extras]) => {
-        const standardTree = this.router.createUrlTree(commands, extras ?? undefined);
-        const standardUrl = this.router.serializeUrl(standardTree);
-        return standardUrl;
-      }));
+      // Title and description are both required before anything is published;
+      // a half-filled set of tags is worse than none.
+      if (!title || !description || !fullStandardUrl) {
+        return;
+      }
 
-    this.fullStandardUrl$ = this.standardUrl$
-      .pipe(map((standardUrl) => {
-        if (this.baseUrl) {
-          return this.baseUrl + standardUrl;
-        } else {
-          return standardUrl;
-        }
-      }));
+      this.createOrUpdateTag(fullStandardUrl, 'og:url', undefined, undefined);
+      this.createOrUpdateTag(title, 'og:title', undefined, undefined);
+      this.createOrUpdateTag(description, 'og:description', undefined, undefined);
 
-    combineLatest([this.title$, this.description$, this.fullStandardUrl$])
-      .pipe(filter(([title, description, fullStandardUrl]) => !!title && !!description && !!fullStandardUrl))
-      .pipe(takeUntilDestroyed())
-      .subscribe(([title, description, fullStandardUrl]) => {
-        this.createOrUpdateTag(fullStandardUrl ?? undefined, 'og:url', undefined, undefined);
-        this.createOrUpdateTag(title, 'og:title', undefined, undefined);
-        this.createOrUpdateTag(description, 'og:description', undefined, undefined);
+      this.titleService.setTitle(title);
 
-        this.titleService.setTitle(title);
-
-        this.createOrUpdateTag(description, undefined, 'description', 'description');
-      });
+      this.createOrUpdateTag(description, undefined, 'description', 'description');
+    });
   }
 
   private createOrUpdateTag(content?: string, property?: string, name?: string, itemprop?: string) {
@@ -80,32 +83,6 @@ export class SeoDirective implements OnDestroy {
 
   private router: Router | IRouter;
   private tags: Record<string, HTMLMetaElement | null> = {};
-
-  private title$ = new BehaviorSubject<string>('');
-  private description$ = new BehaviorSubject<string>('');
-  private commands$ = new BehaviorSubject<any[]>([]);
-  private queryParams$ = new BehaviorSubject<Params | null>(null);
-  private fragment$ = new BehaviorSubject<string | null>(null);
-  private extras$: Observable<NavigationExtras | null>;
-  private standardUrl$: Observable<string | null>;
-  private fullStandardUrl$: Observable<string | null>;
-
-  @Input() public set title(value: string) {
-    this.title$.next(value);
-  }
-  @Input() public set description(value: string) {
-    this.description$.next(value);
-  }
-
-  @Input() set commands(value: any[]) {
-    this.commands$.next(value);
-  }
-  @Input() set queryParams(value: Params | undefined | null) {
-    this.queryParams$.next(value ?? null);
-  }
-  @Input() set fragment(value: string | undefined | null) {
-    this.fragment$.next(value ?? null);
-  }
 
   ngOnDestroy() {
     Object.values(this.tags).forEach((tag) => {

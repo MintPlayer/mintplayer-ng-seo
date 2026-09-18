@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, inject, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
+import { DefaultUrlSerializer, PRIMARY_OUTLET, provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
 import { MockProvider } from 'ng-mocks';
 import { AdvancedRouter } from '../advanced-router/advanced-router.service';
 import { AdvancedRouterLinkDirective } from './advanced-router-link.directive';
@@ -40,7 +40,6 @@ describe('AdvancedRouterLinkDirective', () => {
         MockHomePageComponent,
         MockAboutPageComponent,
       ],
-      declarations: [],
       providers: [
         {
           provide: AdvancedRouter,
@@ -95,28 +94,29 @@ describe('AdvancedRouterLinkDirective', () => {
   });
 
   // href values test
-  it('should have the correct hrefs', (inject(
-    [Router, Location],
-    (router: Router, location: Location) => {
-      const anchor0 = <HTMLAnchorElement>debugElements[0].nativeElement;
-      const anchor1 = <HTMLAnchorElement>debugElements[1].nativeElement;
+  it('should have the correct hrefs', async () => {
+    await fixture.whenStable();
 
-      fixture.whenStable().then(() => {
-        expect(anchor0.getAttribute('href')).toEqual('/test/home');
-        expect(anchor1.getAttribute('href')).toEqual('/test/about');
-      });
-    }
-  )));
+    const anchor0 = <HTMLAnchorElement>debugElements[0].nativeElement;
+    const anchor1 = <HTMLAnchorElement>debugElements[1].nativeElement;
+
+    expect(anchor0.getAttribute('href')).toEqual('/test/home');
+    expect(anchor1.getAttribute('href')).toEqual('/test/about');
+  });
 });
 
 class MockAdvancedRouter {
   createUrlTree(commands: any[], extras?: UrlCreationOptions) {
     return new UrlTree(
       new UrlSegmentGroup([], {
-        '': new UrlSegmentGroup(commands.map(String).map(c => new UrlSegment(c.startsWith('/') ? c.substring(1) : c, {})), {}),
+        [PRIMARY_OUTLET]: new UrlSegmentGroup(commands.map(String).map(c => new UrlSegment(c.startsWith('/') ? c.substring(1) : c, {})), {}),
       }),
       extras?.queryParams || {}
     );
+  }
+
+  serializeUrl(tree: UrlTree) {
+    return new DefaultUrlSerializer().serialize(tree);
   }
 }
 

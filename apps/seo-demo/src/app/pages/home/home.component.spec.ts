@@ -17,10 +17,8 @@ describe('HomeComponent', () => {
         MockDirective(SeoDirective),
         MockDirective(HrefLangDirective),
         MockDirective(CanonicalUrlDirective),
-      ],
-      declarations: [
         // Unit to test
-        HomeComponent,
+        HomeComponent
       ],
     }).compileComponents();
   });

@@ -8,7 +8,9 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
-      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-base-url"],
+      "outputs": [
+        "{workspaceRoot}/dist/libs/mintplayer-ng-base-url"
+      ],
       "options": {
         "project": "libs/mintplayer-ng-base-url/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-base-url/tsconfig.lib.json"
@@ -24,14 +26,12 @@
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-base-url"],
+      "executor": "@analogjs/vitest-angular:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/libs/mintplayer-ng-base-url"
+      ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "coverageDirectory": "coverage/libs/mintplayer-ng-base-url",
-        "jestConfig": "libs/mintplayer-ng-base-url/jest.config.ts",
-        "tsConfig": "libs/mintplayer-ng-base-url/tsconfig.spec.json"
+        "configFile": "vitest.config.ts"
       }
     },
     "lint": {

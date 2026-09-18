@@ -13,9 +13,7 @@ describe('ShowComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule.withRoutes([])
-      ],
-      declarations: [
+        RouterTestingModule.withRoutes([]),
         // Unit to test  
         ShowComponent,
 

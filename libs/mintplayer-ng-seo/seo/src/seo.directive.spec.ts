@@ -58,7 +58,6 @@ describe('HrefLangDirective', () => {
         // Testbench
         SeoTestComponent
       ],
-      declarations: []
     })
     .compileComponents();
 

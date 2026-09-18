@@ -1,9 +1,7 @@
 import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
-import { Directive, Input, OnDestroy, Renderer2, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Directive, OnDestroy, Renderer2, effect, inject, input } from '@angular/core';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { IRouter, ROUTER } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, Observable, Subject, combineLatest, map } from 'rxjs';
 
 @Directive({
   selector: '[canonicalUrl]',
@@ -13,7 +11,10 @@ export class CanonicalUrlDirective implements OnDestroy {
   private renderer = inject(Renderer2);
   private baseUrl = inject(APP_BASE_HREF, { optional: true });
 
-  
+  readonly commands = input<any[]>([]);
+  readonly queryParams = input<Params | undefined | null>(null);
+  readonly fragment = input<string | undefined | null>(null);
+
   constructor() {
     const document = inject(DOCUMENT);
     const router = inject(Router);
@@ -22,48 +23,31 @@ export class CanonicalUrlDirective implements OnDestroy {
     this.router = advancedRouter || router;
     this.document = <Document>document;
 
-    this.extras$ = combineLatest([this.queryParams$, this.fragment$])
-      .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
+    effect(() => {
+      const extras = <NavigationExtras>{
+        queryParams: this.queryParams() ?? null,
+        fragment: this.fragment() ?? null,
+      };
 
-    combineLatest([this.commands$, this.extras$])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([commands, extras]) => {
-        const created = !this.linkElement;
-        if (!this.linkElement) {
-          this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
-          this.linkElement.rel = 'canonical';
-        }
-        
-        const tree = this.router.createUrlTree(commands, extras ?? undefined);
-        const canonicalUrl = this.router.serializeUrl(tree);
-        this.linkElement.href = this.baseUrl ? this.baseUrl + canonicalUrl : canonicalUrl;
+      const created = !this.linkElement;
+      if (!this.linkElement) {
+        this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
+        this.linkElement.rel = 'canonical';
+      }
 
-        created && this.renderer.appendChild(this.document.head, this.linkElement);
-      });
+      const tree = this.router.createUrlTree(this.commands(), extras);
+      const canonicalUrl = this.router.serializeUrl(tree);
+      this.linkElement.href = this.baseUrl ? this.baseUrl + canonicalUrl : canonicalUrl;
+
+      created && this.renderer.appendChild(this.document.head, this.linkElement);
+    });
   }
 
   private router: Router | IRouter;
   private document: Document;
   private linkElement?: HTMLLinkElement;
 
-  private commands$ = new BehaviorSubject<any[]>([]);
-  private queryParams$ = new BehaviorSubject<Params | null>(null);
-  private fragment$ = new BehaviorSubject<string | null>(null);
-  private extras$: Observable<NavigationExtras | null>;
-  private destroyed$ = new Subject();
-
-  @Input() set commands(value: any[]) {
-    this.commands$.next(value);
-  }
-  @Input() set queryParams(value: Params | undefined | null) {
-    this.queryParams$.next(value ?? null);
-  }
-  @Input() set fragment(value: string | undefined | null) {
-    this.fragment$.next(value ?? null);
-  }
-
   ngOnDestroy() {
-    this.destroyed$.next(true);
     this.linkElement?.remove();
   }
 }

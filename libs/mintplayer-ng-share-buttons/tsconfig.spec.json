@@ -2,12 +2,21 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "module": "preserve",
-    "types": ["jest", "node"],
-    "target": "es2016",
+    "types": [
+      "vitest/globals",
+      "node"
+    ],
     "moduleResolution": "bundler",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "module": "preserve"
   },
-  "files": ["src/test-setup.ts"],
-  "include": ["**/*.test.ts", "**/*.spec.ts", "**/*.d.ts", "jest.config.ts"]
+  "include": [
+    "./**/*.test.ts",
+    "./**/*.spec.ts",
+    "./**/*.d.ts",
+    "./vitest.config.ts"
+  ],
+  "files": [
+    "src/test-setup.ts"
+  ]
 }

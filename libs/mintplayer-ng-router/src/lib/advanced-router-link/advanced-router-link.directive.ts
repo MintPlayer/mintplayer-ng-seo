@@ -1,6 +1,6 @@
 import { LocationStrategy } from '@angular/common';
-import { Directive, ElementRef, HostListener, Input, Renderer2, inject, HostAttributeToken } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink, UrlTree } from '@angular/router';
+import { Directive, ElementRef, Renderer2, computed, effect, inject, input, HostAttributeToken } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdvancedRouter } from '../advanced-router/advanced-router.service';
 import { ADVANCED_ROUTER_CONFIG } from '../advanced-router-config.provider';
 import { AdvancedRouterConfig } from '../interfaces/advanced-router-config';
@@ -12,25 +12,9 @@ import { AdvancedRouterConfig } from '../interfaces/advanced-router-config';
   standalone: true
 })
 export class AdvancedRouterLinkDirective extends RouterLink {
-  private advancedRouter = inject(AdvancedRouter);
+  private advancedRouter: AdvancedRouter;
   private nativeRoute: ActivatedRoute;
   private advancedRouterConfig = inject<AdvancedRouterConfig>(ADVANCED_ROUTER_CONFIG, { optional: true });
-
-
-  constructor() {
-    const nativeRoute = inject(ActivatedRoute);
-    const tabIndexAttribute = inject(new HostAttributeToken('tabindex'), { optional: true });
-    const nativeRouter = inject(Router);
-    const renderer = inject(Renderer2);
-    const element = inject(ElementRef);
-    const nativeLocationStrategy = inject(LocationStrategy);
-
-    super(nativeRouter, nativeRoute, tabIndexAttribute, renderer, element, nativeLocationStrategy);
-  
-    this.nativeRoute = nativeRoute;
-  }
-
-  private nativeCommands: any[] = [];
 
   /**
    * Commands to pass to {@link Router#createUrlTree Router#createUrlTree}.
@@ -39,28 +23,53 @@ export class AdvancedRouterLinkDirective extends RouterLink {
    *   - **null|undefined**: shorthand for an empty array of commands, i.e. `[]`
    * @see {@link Router#createUrlTree Router#createUrlTree}
    */
-   @Input()
-   set advRouterLink(commands: any[] | string | null | undefined) {
-     if (commands != null) {
-       this.nativeCommands = Array.isArray(commands) ? commands : [commands];
-     } else {
-       this.nativeCommands = [];
-     }
-   }
+  readonly advRouterLink = input<any[] | string | null | undefined>(undefined);
 
-   @Input()
-   navigationDelay?: number;
+  readonly navigationDelay = input<number | undefined>(undefined);
 
-  override get urlTree(): UrlTree {
-    return this.advancedRouter.createUrlTree(this.nativeCommands, {
-      // If the `relativeTo` input is not defined, we want to use `this.route` by default.
-      // Otherwise, we should use the value provided by the user in the input.
-      // relativeTo: (<string>this.nativeCommands[0]).startsWith('/') ? null : this.relativeTo !== undefined ? this.relativeTo : this.nativeRoute,
-      relativeTo: this.relativeTo !== undefined ? this.relativeTo : this.nativeRoute,
-      queryParams: this.queryParams,
-      fragment: this.fragment,
-      queryParamsHandling: '', // Drop queryparams and let the AdvancedRouter do all the work
-      preserveFragment: this.attrBoolValue(this.preserveFragment),
+  private readonly nativeCommands = computed(() => {
+    const commands = this.advRouterLink();
+    if (commands == null) {
+      return [];
+    }
+    return Array.isArray(commands) ? commands : [commands];
+  });
+
+  constructor() {
+    const nativeRoute = inject(ActivatedRoute);
+    const tabIndexAttribute = inject(new HostAttributeToken('tabindex'), { optional: true });
+    const advancedRouter = inject(AdvancedRouter);
+    const renderer = inject(Renderer2);
+    const element = inject(ElementRef);
+    const nativeLocationStrategy = inject(LocationStrategy);
+
+    // RouterLink only ever calls createUrlTree, serializeUrl and navigateByUrl
+    // on its router, and AdvancedRouter implements all three (IRouter). Handing
+    // it the AdvancedRouter is what routes href generation and navigation
+    // through the advanced query-parameter handling.
+    super(
+      advancedRouter as unknown as Router,
+      nativeRoute,
+      tabIndexAttribute,
+      renderer,
+      element,
+      nativeLocationStrategy
+    );
+
+    this.nativeRoute = nativeRoute;
+    this.advancedRouter = advancedRouter;
+
+    // Drop query params here and let AdvancedRouter do all the work.
+    this.queryParamsHandling = '';
+
+    // Angular 22's RouterLink derives the rendered href, and its click
+    // handling, from a private `_urlTree` computed that reads the `routerLink`
+    // signal input -- not from the public `urlTree` getter, which a subclass
+    // used to be able to override. Leaving `routerLink` unset leaves
+    // `_urlTree()` null, which strips the href attribute entirely and makes
+    // onClick a no-op.
+    effect(() => {
+      this.routerLink = this.nativeCommands();
     });
   }
 
@@ -74,13 +83,9 @@ export class AdvancedRouterLinkDirective extends RouterLink {
         return true;
     }
 
-    const delay = this.navigationDelay ?? this.advancedRouterConfig?.navigationDelay ?? 0;
+    const delay = this.navigationDelay() ?? this.advancedRouterConfig?.navigationDelay ?? 0;
     setTimeout(() => super.onClick(button, ctrlKey, shiftKey, altKey, metaKey), delay);
 
     return false;
-  }
-
-  private attrBoolValue(s: any) {
-    return s === '' || !!s;
   }
 }
