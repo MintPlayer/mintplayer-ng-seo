@@ -1,107 +1,146 @@
 import { APP_BASE_HREF } from '@angular/common';
-import { Component, Injectable, inject } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router, RouterOutlet, UrlCreationOptions, UrlSegment, UrlSegmentGroup, UrlTree } from '@angular/router';
-import { AdvancedRouter, ADVANCED_ROUTER_CONFIG, AdvancedRouterConfig } from '@mintplayer/ng-router';
-
+import { provideRouter } from '@angular/router';
 import { FacebookShareComponent } from './facebook-share.component';
 
-describe('FacebookShareComponent', () => {
-  let component: AppComponent;
-  let fixture: ComponentFixture<AppComponent>;
+// jsdom never fetches an external <script>, so the real loadScript would hang
+// forever and every render path below would be dead. Mocking it also lets the
+// SDK url and options be asserted.
+const loadScript = vi.hoisted(() => vi.fn());
+vi.mock('@mintplayer/script-loader', () => ({ loadScript }));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        // Mock dependencies
-        AppComponent,
-        HomeComponent,
-      ],
-      providers: [
-        provideRouter([
-          { path: '', component: HomeComponent }
-        ]),
-        {
-          provide: AdvancedRouter,
-          useClass: MockAdvancedRouter
-        }, {
-          provide: APP_BASE_HREF,
-          useValue: 'http://localhost/'
-        }, {
-          provide: ADVANCED_ROUTER_CONFIG,
-          useValue: <AdvancedRouterConfig>{ }
-        }
-      ]
-    })
-    .compileComponents();
-  });
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
-
-@Injectable({
-  providedIn: 'root'
+@Component({
+  standalone: true,
+  imports: [FacebookShareComponent],
+  template: `<facebook-share [shareRouterLink]="link()" [queryParams]="queryParams()" [size]="size()" [layout]="layout()"></facebook-share>`,
 })
-class MockAdvancedRouter {
-  private router = inject(Router);
-
-
-  createUrlTree(commands: any[], extras?: UrlCreationOptions) : UrlTree {
-    const urlTree = new UrlTree();
-
-    // Segments
-    urlTree.root = new UrlSegmentGroup(
-      commands.map(c => new UrlSegment(
-        (<string>c).startsWith('/')
-          ? (<string>c).substring(1)
-          : <string>c,
-        { }
-      )),
-      { }
-    );
-
-    // QueryParams
-    if ((typeof extras !== 'undefined') && (typeof extras.queryParams !== 'undefined') && (extras.queryParams !== null)) {
-      urlTree.queryParams = extras.queryParams;
-    } else {
-      urlTree.queryParams = { };
-    }
-
-    return urlTree;
-  }
-
-  serializeUrl(url: UrlTree) {
-    return this.router.serializeUrl(url);
-  }
+class HostComponent {
+  readonly link = signal<string | unknown[] | null | undefined>(undefined);
+  readonly queryParams = signal<Record<string, unknown> | null>(null);
+  readonly size = signal<'large' | 'small'>('large');
+  readonly layout = signal<'icon_link' | 'box_count' | 'button_count' | 'button'>('button_count');
 }
 
-@Component({
-  selector: 'test-app-component',
-  standalone: true,
-  imports: [RouterOutlet],
-  template: `
-    <h1>App</h1>
-    <router-outlet></router-outlet>`
-})
-class AppComponent {}
+describe('FacebookShareComponent', () => {
+  let fixture: ComponentFixture<HostComponent>;
 
-@Component({
-  selector: 'test-home-component',
-  standalone: true,
-  imports: [
-    // Unit to test
-    FacebookShareComponent
-  ],
-  template: `
-    <h2>Home</h2>
-    <facebook-share [shareRouterLink]='[]'></facebook-share>`
-})
-class HomeComponent {}
+  const wrapperEl = () => fixture.nativeElement.querySelector('div');
+  const rendered = () => fixture.nativeElement.querySelector('div.fb-share-button');
+
+  /** Bind a link, let the mocked SDK resolve, then clear the 20ms render timer. */
+  const render = async (link?: unknown) => {
+    if (link !== undefined) {
+      fixture.componentInstance.link.set(link as never);
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  };
+
+  beforeEach(() => {
+    loadScript.mockReset();
+    loadScript.mockResolvedValue([]);
+
+    TestBed.configureTestingModule({
+      imports: [HostComponent],
+      providers: [provideRouter([]), { provide: APP_BASE_HREF, useValue: 'http://localhost/' }],
+    });
+    fixture = TestBed.createComponent(HostComponent);
+  });
+
+  afterEach(() => {
+    delete (window as Record<string, unknown>)['FB'];
+  });
+
+  describe('loading the SDK', () => {
+    it('requests the vendor SDK once a link is bound', async () => {
+      await render(['/about']);
+
+      expect(loadScript).toHaveBeenCalledWith('https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.0', { windowCallback: 'fbAsyncInit' });
+    });
+
+    it('renders nothing until the SDK resolves', async () => {
+      let resolveSdk: (v: unknown) => void = () => undefined;
+      loadScript.mockReturnValue(new Promise((r) => (resolveSdk = r)));
+
+      await render(['/about']);
+      expect(wrapperEl().innerHTML).toBe('');
+
+      resolveSdk([]);
+      await render();
+
+      expect(rendered()).not.toBeNull();
+    });
+  });
+
+  describe('rendering', () => {
+    it('renders the share url built from the bound commands', async () => {
+      await render(['/people', 42]);
+
+      expect(rendered()!.getAttribute('data-href')).toBe('http://localhost/people/42');
+    });
+
+    it('includes the bound query params', async () => {
+      fixture.componentInstance.queryParams.set({ tab: 'reviews' });
+      await render(['/people', 42]);
+
+      expect(rendered()!.getAttribute('data-href')).toBe('http://localhost/people/42?tab=reviews');
+    });
+
+    it('accepts a bare string as a single command', async () => {
+      await render('/about');
+
+      expect(rendered()!.getAttribute('data-href')).toBe('http://localhost/about');
+    });
+
+    it('passes an absolute url straight through', async () => {
+      await render('https://mintplayer.com/x');
+
+      expect(rendered()!.getAttribute('data-href')).toBe('https://mintplayer.com/x');
+    });
+
+    it('renders the default size', async () => {
+      await render(['/about']);
+
+      expect(rendered()!.getAttribute('data-size')).toBe('large');
+    });
+
+    it('re-renders when the link changes', async () => {
+      await render(['/about']);
+      expect(rendered()!.getAttribute('data-href')).toBe('http://localhost/about');
+
+      await render(['/contact']);
+
+      expect(rendered()!.getAttribute('data-href')).toBe('http://localhost/contact');
+    });
+
+    it('renders the default layout', async () => {
+      await render(['/about']);
+      expect(rendered()!.getAttribute('data-layout')).toBe('button_count');
+    });
+
+    it('renders a bound layout', async () => {
+      fixture.componentInstance.layout.set('button');
+      await render(['/about']);
+      expect(rendered()!.getAttribute('data-layout')).toBe('button');
+    });
+  });
+
+  describe('the vendor global', () => {
+    it('asks the SDK to re-parse the widget', async () => {
+      (window as Record<string, unknown>)['FB'] = { XFBML: { parse: vi.fn() } };
+
+      await render(['/about']);
+
+      expect((window as any)['FB'].XFBML.parse).toHaveBeenCalledWith(wrapperEl());
+    });
+
+    it('renders without throwing when the global is absent', async () => {
+      await render(['/about']);
+
+      expect(rendered()).not.toBeNull();
+    });
+  });
+});

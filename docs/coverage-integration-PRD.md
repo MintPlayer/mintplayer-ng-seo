@@ -26,7 +26,7 @@ Success looks like:
 - Coverage thresholds / CI failure gates. Deliberately deferred — see §8.
 - Writing tests for the three libs that currently have none. This PRD only makes their 0%
   **visible**.
-- **Going zoneless.** See the decision in §5 — tests stay zone-based.
+- Writing a two-way binding purely to exercise `model()` — see §5.
 - Cypress e2e coverage instrumentation (`apps/seo-demo-e2e`).
 
 ---
@@ -127,31 +127,56 @@ reproduce the current pass rate, stop and reconsider before touching CI.
 
 ---
 
-## 5. Decision: tests stay zone-based
+## 5. Decision: zone.js is removed entirely
 
-ng-bootstrap's `test-setup.ts` uses `provideZonelessChangeDetection()`. **We are not copying
-that.** This repo still ships `zone.js ~0.16.0` and a zone-based app; going zoneless in tests
-only would decouple test and runtime change-detection semantics, and going zoneless
-everywhere is a separate migration that should not ride along inside a coverage PR.
+**Superseded.** This section originally decided the opposite -- that tests would stay
+zone-based to match a zone-based app. That decision was reversed on request, and the
+investigation behind it turned out to be wrong in an instructive way.
 
-Our `test-setup.ts` therefore keeps the zone import:
+What was actually found while implementing:
 
-```ts
-import 'zone.js';
-import 'zone.js/testing';
-import { getTestBed } from '@angular/core/testing';
-import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+1. The zone-based test setup **never worked**. `test-setup.ts` imported `zone.js` and
+   `zone.js/testing`, but in Angular 22 that is not enough: without
+   `provideZoneChangeDetection()` a TestBed injector hands back a `NoopNgZone`. Every
+   spec in the repo had been running zoneless while claiming otherwise.
+2. Because of that, mutating a plain component field never marked the view dirty, so
+   `fixture.detectChanges()` silently did nothing. A test could bind a new value,
+   re-run change detection, and assert against the *old* rendering without failing.
+   This is exactly how the canonical-url spec's "updates in place" case first failed.
+3. Enabling real zone change detection did **not** fix it. The root cause was the
+   decorator-based `@Input() set` plumbing, not the zone.
 
-getTestBed().initTestEnvironment(
-  BrowserTestingModule,
-  platformBrowserTesting(),
-  { teardown: { destroyAfterEach: true } }
-);
-```
+So the repo now goes zoneless deliberately and completely:
 
-Revisit once the app itself goes zoneless.
+- `zone.js` is gone from `package.json`.
+- `apps/seo-demo/src/polyfills.ts` is deleted -- it contained nothing but the zone.js
+  import -- and the `polyfills` option is removed from the app's build target.
+- `main.ts` bootstraps with `provideZonelessChangeDetection()`.
+- All six `test-setup.ts` files provide `provideZonelessChangeDetection()` explicitly,
+  so the tests state what they run under rather than inheriting a silent default.
 
----
+### Signals
+
+Zoneless change detection only notices signal writes, so every `@Input()` in the
+workspace was converted to a signal input, and the RxJS plumbing behind them
+(`BehaviorSubject` + `combineLatest` + `takeUntilDestroyed`) collapsed into `computed`
+and `effect`:
+
+| Library | Converted |
+|---|---|
+| `mintplayer-ng-seo` | `canonical`, `href-lang`, `json-ld`, `seo` directives |
+| `mintplayer-ng-router` | `advanced-router-link` directive |
+| `mintplayer-ng-share-buttons` | all three share components, plus `@ViewChild` -> `viewChild()` |
+
+`model()` was **not** needed: the workspace contains no two-way bindings. Nothing in
+any template uses `[( )]`, so there is no state flowing back out of a component, and
+inventing a two-way binding to justify `model()` would have added API surface nobody
+asked for. If a two-way input is added later, `model()` is the right tool for it.
+
+One behavioural improvement came out of the conversion: the share components read
+`size`/`layout`/`text` inside the render effect, so changing them now re-renders the
+widget. Previously those values were snapshotted on first render and a later change was
+silently ignored.
 
 ## 6. Plan
 

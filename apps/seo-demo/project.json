@@ -18,9 +18,6 @@
         },
         "index": "apps/seo-demo/src/index.html",
         "browser": "apps/seo-demo/src/main.ts",
-        "polyfills": [
-          "apps/seo-demo/src/polyfills.ts"
-        ],
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [

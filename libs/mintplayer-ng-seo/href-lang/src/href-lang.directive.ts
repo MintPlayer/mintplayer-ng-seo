@@ -1,9 +1,7 @@
 import { APP_BASE_HREF, DOCUMENT } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Directive, Input, OnDestroy, Renderer2, inject } from '@angular/core';
+import { Directive, OnDestroy, Renderer2, effect, inject, input } from '@angular/core';
 import { NavigationExtras, Params, Router } from '@angular/router';
 import { ROUTER, IRouter } from '@mintplayer/ng-router-provider';
-import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
 
 @Directive({
   selector: '[hrefLang]',
@@ -13,6 +11,10 @@ export class HrefLangDirective implements OnDestroy {
   private renderer = inject(Renderer2);
   private baseUrl = inject(APP_BASE_HREF, { optional: true });
 
+  readonly hrefLang = input<string | null>(null);
+  readonly commands = input<any[]>([]);
+  readonly queryParams = input<Params | undefined | null>(null);
+  readonly fragment = input<string | undefined | null>(null);
 
   constructor() {
     const document = inject(DOCUMENT);
@@ -22,50 +24,31 @@ export class HrefLangDirective implements OnDestroy {
     this.document = <Document>document;
     this.router = advancedRouter || router;
 
-    this.extras$ = combineLatest([this.queryParams$, this.fragment$])
-      .pipe(map(([queryParams, fragment]) => <NavigationExtras>{ queryParams, fragment }));
+    effect(() => {
+      const extras = <NavigationExtras>{
+        queryParams: this.queryParams() ?? null,
+        fragment: this.fragment() ?? null,
+      };
 
-    combineLatest([this.language$, this.commands$, this.extras$])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([language, commands, extras]) => {
-        const created = !this.linkElement;
-        if (!this.linkElement) {
-          this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
-          this.linkElement.rel = 'alternate';
-        }
-        
-        this.linkElement.hreflang = language!;
+      const created = !this.linkElement;
+      if (!this.linkElement) {
+        this.linkElement = <HTMLLinkElement>this.renderer.createElement('link');
+        this.linkElement.rel = 'alternate';
+      }
 
-        const tree = this.router.createUrlTree(commands, extras ?? undefined);
-        const href = this.router.serializeUrl(tree);
-        this.linkElement.href = this.baseUrl ? this.baseUrl + href : href;
+      this.linkElement.hreflang = this.hrefLang()!;
 
-        created && this.renderer.appendChild(this.document.head, this.linkElement);
-      });
+      const tree = this.router.createUrlTree(this.commands(), extras);
+      const href = this.router.serializeUrl(tree);
+      this.linkElement.href = this.baseUrl ? this.baseUrl + href : href;
+
+      created && this.renderer.appendChild(this.document.head, this.linkElement);
+    });
   }
 
   private document: Document;
   private router: Router | IRouter;
   private linkElement?: HTMLLinkElement;
-
-  private language$ = new BehaviorSubject<string | null>(null);
-  private commands$ = new BehaviorSubject<any[]>([]);
-  private queryParams$ = new BehaviorSubject<Params | null>(null);
-  private fragment$ = new BehaviorSubject<string | null>(null);
-  private extras$: Observable<NavigationExtras | null>;
-
-  @Input() set hrefLang(value: string) {
-    this.language$.next(value);
-  }
-  @Input() set commands(value: any[]) {
-    this.commands$.next(value);
-  }
-  @Input() set queryParams(value: Params | undefined | null) {
-    this.queryParams$.next(value ?? null);
-  }
-  @Input() set fragment(value: string | undefined | null) {
-    this.fragment$.next(value ?? null);
-  }
 
   ngOnDestroy() {
     this.linkElement?.remove();

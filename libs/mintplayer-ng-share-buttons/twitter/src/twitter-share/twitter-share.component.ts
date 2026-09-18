@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, ElementRef, Input, ViewChild, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { Params } from '@angular/router';
 import { ExternalUrlService } from '@mintplayer/ng-share-buttons';
 import { loadScript } from '@mintplayer/script-loader';
-import { BehaviorSubject, combineLatest, filter, take } from 'rxjs';
+
+const SDK_URL = 'https://platform.twitter.com/widgets.js';
 
 @Component({
   selector: 'twitter-share',
@@ -14,70 +14,59 @@ import { BehaviorSubject, combineLatest, filter, take } from 'rxjs';
 export class TwitterShareComponent implements AfterViewInit {
   private externalUrlService = inject(ExternalUrlService);
 
+  readonly shareRouterLink = input<string | any[] | null>([]);
+  readonly queryParams = input<Params | null>(null);
+  readonly size = input<'large' | 'small'>('large');
+  readonly text = input('');
+
+  readonly wrapper = viewChild<ElementRef<HTMLDivElement>>('wrapper');
+
+  private readonly isViewInited = signal(false);
+  private readonly sdkReady = signal(false);
+
+  private readonly commands = computed(() => {
+    const value = this.shareRouterLink();
+    if (value == null) {
+      return [];
+    }
+    return Array.isArray(value) ? value : [value];
+  });
+
+  private readonly href = computed(() => {
+    if (!this.sdkReady()) {
+      return null;
+    }
+    return this.externalUrlService.buildUrl(this.commands(), this.queryParams() ?? {});
+  });
 
   constructor() {
-    combineLatest([this.isViewInited$, this.commands$])
-      .pipe(filter(([isViewInited, commands]) => !!isViewInited && !!commands))
-      .pipe(takeUntilDestroyed())
-      .subscribe(([isViewInited, commands]) => {
-        loadScript('https://platform.twitter.com/widgets.js')
-          .then((params) => this.sdkReady$.next(true));
-      });
-    
-    combineLatest([this.sdkReady$.pipe(filter(r => !!r), take(1)), this.commands$, this.queryParams$])
-      .pipe(takeUntilDestroyed())
-      .subscribe(([r, commands, queryParams]) => {
-        // Update href
-        const href = this.externalUrlService.buildUrl(commands!, queryParams);
-        this.href$.next(href);
-      });
-    
-    this.href$
-      .pipe(filter((href) => !!href))
-      .pipe(takeUntilDestroyed())
-      .subscribe((href) => {
-        if (typeof window !== 'undefined') {
-          setTimeout(() => {
-            this.wrapper.nativeElement.innerHTML = `<a href="https://twitter.com/share" class="twitter-share-button" data-url="${href}" data-size="${this.size}" data-text="${this.text}" data-count="none">Tweet</a>`;
-            (<any>window)['twttr'] && (<any>window)['twttr'].widgets.load();
-          }, 20);
-        }
-      });
-  }
+    effect(() => {
+      if (!this.isViewInited() || !this.commands()) {
+        return;
+      }
+      loadScript(SDK_URL).then(() => this.sdkReady.set(true));
+    });
 
-  private isViewInited$ = new BehaviorSubject<boolean>(false);
-  private sdkReady$ = new BehaviorSubject<boolean>(false);
+    effect(() => {
+      const href = this.href();
+      const wrapper = this.wrapper()?.nativeElement;
+      if (!href || !wrapper || typeof window === 'undefined') {
+        return;
+      }
 
-  private commands$ = new BehaviorSubject<any[]>([]);
-  private queryParams$ = new BehaviorSubject<Params>({});
-  private href$ = new BehaviorSubject<string | null>(null);
-  
-  //#region shareRouterLink
-  @Input() set shareRouterLink(value: string | any[]) {
-    if (value === null) {
-      this.commands$.next([]);
-    } else if (Array.isArray(value)) {
-      this.commands$.next(value);
-    } else {
-      this.commands$.next([value]);
-    }
+      // Read the presentational inputs here rather than inside the timeout, so
+      // that changing them re-renders the widget.
+      const size = this.size();
+      const text = this.text();
+
+      setTimeout(() => {
+        wrapper.innerHTML = `<a href="https://twitter.com/share" class="twitter-share-button" data-url="${href}" data-size="${size}" data-text="${text}" data-count="none">Tweet</a>`;
+        (<any>window)['twttr'] && (<any>window)['twttr'].widgets.load();
+      }, 20);
+    });
   }
-  //#endregion
-  //#region queryParams
-  @Input() set queryParams(value: Params | null) {
-    this.queryParams$.next(value ?? {});
-  }
-  //#endregion
-  //#region text
-  @Input() text = '';
-  //#endregion
-  //#region size
-  @Input() size: 'large' | 'small' = 'large';
-  //#endregion
-  
-  @ViewChild('wrapper') wrapper!: ElementRef<HTMLDivElement>;
 
   ngAfterViewInit() {
-    this.isViewInited$.next(true);
+    this.isViewInited.set(true);
   }
 }
