@@ -14,6 +14,7 @@ jobs:
 
     permissions:
       contents: read
+      pull-requests: read
 
     steps:
     - name: Checkout
@@ -26,19 +27,35 @@ jobs:
       with:
         node-version: 22
 
+    - name: Is there an open PR for this branch?
+      id: openpr
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        count=$(gh pr list --head "${{ github.ref_name }}" --state open --json number --jq 'length')
+        echo "count=$count" >> "$GITHUB_OUTPUT"
+        if [ "$count" != "0" ]; then
+          echo "Open PR found for ${{ github.ref_name }}; pull-request.yml covers this push." >> "$GITHUB_STEP_SUMMARY"
+        fi
+
     - name: Install dependencies
+      if: steps.openpr.outputs.count == '0'
       run: npm ci --force
 
     - name: Build
+      if: steps.openpr.outputs.count == '0'
       run: npm run build -- --configuration=production
 
     - name: Test
+      if: steps.openpr.outputs.count == '0'
       run: npx nx run-many -t test --all --coverage --parallel=2 --output-style=stream
 
     - name: Rebase coverage paths to workspace-relative
+      if: steps.openpr.outputs.count == '0'
       run: node tools/scripts/rebase-lcov-paths.mjs
 
     - name: Upload coverage
+      if: steps.openpr.outputs.count == '0'
       continue-on-error: true
       uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/action@coverage-upload-v1
       with:
