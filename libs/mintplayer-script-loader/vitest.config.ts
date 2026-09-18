@@ -6,7 +6,9 @@ export default defineConfig({
   test: {
     name: 'mintplayer-script-loader',
     globals: true,
-    environment: 'node',
+    // jsdom, not node: this library manipulates document/window directly, and
+    // under 'node' only the SSR early-return is reachable.
+    environment: 'jsdom',
     include: ['**/*.spec.ts'],
     reporters: ['default'],
     pool: 'forks',
