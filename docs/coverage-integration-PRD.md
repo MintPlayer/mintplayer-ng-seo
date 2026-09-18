@@ -1,6 +1,6 @@
 # PRD — Code coverage integration for `mintplayer-ng-seo`
 
-**Status:** Draft
+**Status:** Implemented (local verification complete; CI unverified)
 **Date:** 2026-09-18
 **Owner:** PieterjanDeClippel
 
@@ -387,24 +387,60 @@ doesn't resolve on disk. It is idempotent.
 
 ---
 
-## 8. Verification
+## 8. Verification — results
 
-Gate on step 1 before touching any CI file.
+Measured on 2026-09-18, all seven projects, branch `feature/code-coverage`.
 
-1. `npx nx run-many -t test --all` locally → same pass/fail result as Jest gives today, all
-   17 specs accounted for across seven projects.
-2. `npx nx run-many -t test --all --coverage` → seven `lcov.info` files under
-   `coverage/{apps,libs}/*/`, all non-empty **including the three zero-spec libs**, which
-   should now show 0% rather than blank. If they're blank, `coverage.include` is wrong.
-3. Inspect a generated `lcov.info`: confirm `SF:` paths are project-relative (they will be),
-   run `node tools/scripts/rebase-lcov-paths.mjs`, confirm they are now workspace-relative and
-   that re-running it changes nothing.
-4. Confirm Nx caching doesn't eat the reports: run twice, verify the second (cached) run still
-   leaves `coverage/**/lcov.info` on disk.
-5. Open a PR → upload succeeds, `coverage/project` and `coverage/patch` checks appear.
-6. Merge → `…/r/MintPlayer/mintplayer-ng-seo` shows the full workspace number, badge renders.
+| Gate | Result |
+|---|---|
+| 1. Vitest reproduces the Jest pass rate | **PASS** — 16 suites / 22 tests, identical to baseline |
+| 2. Seven non-empty lcov reports, spec-less libs at 0% not blank | **PASS** |
+| 3. `SF:` paths rebase to workspace-relative, idempotently | **PASS** |
+| 4. Nx cache hit still leaves reports on disk | **PASS** |
+| 5. PR upload succeeds, check runs appear | **not yet run** |
+| 6. Badge renders on master | **not yet run** |
 
----
+### Speed
+
+Per-project suite time, Jest vs Vitest:
+
+| Project | Jest | Vitest |
+|---|---|---|
+| seo-demo | 26.9s | 7.2s |
+| mintplayer-ng-seo | 69.2s | 5.8s |
+| mintplayer-ng-share-buttons | 18.2s | 6.3s |
+| mintplayer-ng-router | 72.7s | 4.4s |
+| **total suite time** | **~187s** | **~24s** |
+
+### Baseline coverage
+
+Printed by `rebase-lcov-paths.mjs` before upload:
+
+```
+  project                             files                   lines                branches
+  apps/seo-demo                          15          17/38 (44.74%)            1/6 (16.67%)
+  libs/mintplayer-ng-base-url            10            0/48 (0.00%)            0/32 (0.00%)
+  libs/mintplayer-ng-router               9          19/78 (24.36%)            2/50 (4.00%)
+  libs/mintplayer-ng-router-provider      5             0/5 (0.00%)                       -
+  libs/mintplayer-ng-seo                 16         93/143 (65.03%)          45/73 (61.64%)
+  libs/mintplayer-ng-share-buttons        8           8/103 (7.77%)            0/42 (0.00%)
+  libs/mintplayer-script-loader           3            0/43 (0.00%)            0/20 (0.00%)
+  TOTAL                                  66        137/458 (29.91%)         48/223 (21.52%)
+```
+
+### Confirmed during implementation
+
+- **The rebase script was necessary, as predicted.** Vitest emitted
+  `SF:canonical-url\index.ts` and `SF:src\main.ts`; six of seven projects have a
+  `src/`, so suffix matching would have dropped them. All 66 paths resolve after
+  rebasing.
+- **The `src/**` include glob was wrong.** `mintplayer-ng-seo` and
+  `mintplayer-ng-share-buttons` are secondary-entrypoint libraries with specs
+  under `<lib>/<entrypoint>/src/`; the first run found 9 of 16 spec files. Fixed
+  to `**/*.spec.ts`.
+- **13 specs used `declarations` for standalone components.** Angular 22 makes
+  components standalone by default; Jest tolerated it, JIT rejects it. Merged
+  into `imports`.
 
 ## 9. Prerequisites
 
@@ -421,6 +457,16 @@ Gate on step 1 before touching any CI file.
 three zero-spec libs in at 0% and a global threshold would fail CI immediately. Land the
 reporting, read the real numbers off coverage.mintplayer.com, then set a threshold at or just
 below the observed baseline in a follow-up.
+
+**A vacuously-passing test.** `advanced-router-link.directive.spec.ts >
+should have the correct hrefs` wraps its assertions in
+`fixture.whenStable().then(...)` without returning or awaiting the promise, so
+they run after the test has already passed and the test asserts nothing. Vitest
+surfaces this as a stderr `AssertionError` on every run; Jest hid it. The
+underlying assertion genuinely fails — the hrefs are `null`. Left as-is here
+because fixing it turns CI red on a real defect that predates this work, and
+it needs its own investigation. It is one of the 22 tests counted above, so the
+true passing count is 21.
 
 **Zoneless.** See §5. Once the app drops `zone.js`, revisit `test-setup.ts` to match
 ng-bootstrap's `provideZonelessChangeDetection()`.
