@@ -17,7 +17,6 @@ describe('TwitterShareComponent', () => {
         AppComponent,
         HomeComponent,
       ],
-      declarations: [],
       providers: [
         provideRouter([
           { path: '', component: HomeComponent }

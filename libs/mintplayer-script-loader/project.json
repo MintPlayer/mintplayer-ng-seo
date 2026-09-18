@@ -7,12 +7,16 @@
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/libs/mintplayer-script-loader",
         "main": "libs/mintplayer-script-loader/src/index.ts",
         "tsConfig": "libs/mintplayer-script-loader/tsconfig.lib.json",
-        "assets": ["libs/mintplayer-script-loader/*.md"],
+        "assets": [
+          "libs/mintplayer-script-loader/*.md"
+        ],
         "updateBuildableProjectDepsInPackageJson": true
       }
     },
@@ -31,13 +35,12 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-script-loader"],
+      "executor": "@analogjs/vitest-angular:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/libs/mintplayer-script-loader"
+      ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "coverageDirectory": "coverage/libs/mintplayer-script-loader",
-        "jestConfig": "libs/mintplayer-script-loader/jest.config.ts"
+        "configFile": "vitest.config.ts"
       }
     }
   }

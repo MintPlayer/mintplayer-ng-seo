@@ -15,7 +15,6 @@ describe('ExternalUrlService', () => {
       imports: [
         HomeComponent
       ],
-      declarations: [],
       providers: [
         provideRouter([
           { path: '', component: HomeComponent }

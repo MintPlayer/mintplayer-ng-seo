@@ -8,7 +8,9 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
-      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-seo"],
+      "outputs": [
+        "{workspaceRoot}/dist/libs/mintplayer-ng-seo"
+      ],
       "options": {
         "project": "libs/mintplayer-ng-seo/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-seo/tsconfig.lib.json"
@@ -24,13 +26,12 @@
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "@analogjs/vitest-angular:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/libs/mintplayer-ng-seo"
+      ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "jestConfig": "libs/mintplayer-ng-seo/jest.config.ts",
-        "tsConfig": "libs/mintplayer-ng-seo/tsconfig.spec.json"
+        "configFile": "vitest.config.ts"
       }
     },
     "lint": {

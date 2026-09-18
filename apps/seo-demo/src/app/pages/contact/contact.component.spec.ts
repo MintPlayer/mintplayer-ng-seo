@@ -14,8 +14,6 @@ describe('ContactComponent', () => {
       imports: [
         // Unit to test
         ContactComponent,
-      ],
-      declarations: [
         // Mock dependencies
         MockComponent(FacebookShareComponent),
         MockComponent(TwitterShareComponent),

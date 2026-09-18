@@ -40,7 +40,6 @@ describe('AdvancedRouterLinkDirective', () => {
         MockHomePageComponent,
         MockAboutPageComponent,
       ],
-      declarations: [],
       providers: [
         {
           provide: AdvancedRouter,

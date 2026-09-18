@@ -8,7 +8,9 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
-      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-router-provider"],
+      "outputs": [
+        "{workspaceRoot}/dist/libs/mintplayer-ng-router-provider"
+      ],
       "options": {
         "project": "libs/mintplayer-ng-router-provider/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-router-provider/tsconfig.lib.json"
@@ -24,16 +26,12 @@
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "@analogjs/vitest-angular:test",
       "outputs": [
         "{workspaceRoot}/coverage/libs/mintplayer-ng-router-provider"
       ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "coverageDirectory": "coverage/libs/mintplayer-ng-router-provider",
-        "jestConfig": "libs/mintplayer-ng-router-provider/jest.config.ts",
-        "tsConfig": "libs/mintplayer-ng-router-provider/tsconfig.spec.json"
+        "configFile": "vitest.config.ts"
       }
     },
     "lint": {

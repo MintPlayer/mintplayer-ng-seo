@@ -8,7 +8,9 @@
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:application",
-      "outputs": ["{workspaceRoot}/dist/apps/seo-demo"],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/seo-demo"
+      ],
       "options": {
         "outputPath": {
           "base": "dist/apps/seo-demo",
@@ -16,7 +18,9 @@
         },
         "index": "apps/seo-demo/src/index.html",
         "browser": "apps/seo-demo/src/main.ts",
-        "polyfills": ["apps/seo-demo/src/polyfills.ts"],
+        "polyfills": [
+          "apps/seo-demo/src/polyfills.ts"
+        ],
         "tsConfig": "apps/seo-demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -25,7 +29,9 @@
           "apps/seo-demo/src/web.config",
           "apps/seo-demo/src/nginx.conf"
         ],
-        "styles": ["apps/seo-demo/src/styles.scss"],
+        "styles": [
+          "apps/seo-demo/src/styles.scss"
+        ],
         "scripts": []
       },
       "configurations": {
@@ -81,13 +87,12 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "@analogjs/vitest-angular:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/apps/seo-demo"
+      ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "jestConfig": "apps/seo-demo/jest.config.ts",
-        "tsConfig": "apps/seo-demo/tsconfig.spec.json"
+        "configFile": "vitest.config.ts"
       }
     }
   }

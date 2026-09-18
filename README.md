@@ -1,5 +1,7 @@
 # @mintplayer/ng-seo
 
+[![Coverage](https://coverage.mintplayer.com/badge/MintPlayer/mintplayer-ng-seo.svg)](https://coverage.mintplayer.com/r/MintPlayer/mintplayer-ng-seo)
+
 ## Docker image
 You can run the docker image which is published to the GitHub Container Registry
 

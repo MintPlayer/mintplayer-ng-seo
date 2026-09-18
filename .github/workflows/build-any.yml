@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup node
       uses: actions/setup-node@v4
@@ -30,5 +32,22 @@ jobs:
     - name: Build
       run: npm run build -- --configuration=production
 
-    # - name: Test
-    #   run: npm run test --watch=false --parallel=true
+    - name: Test
+      run: npx nx run-many -t test --all --coverage --parallel=2 --output-style=stream
+
+    - name: Rebase coverage paths to workspace-relative
+      run: node tools/scripts/rebase-lcov-paths.mjs
+
+    - name: Upload coverage
+      continue-on-error: true
+      uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/action@coverage-upload-v1
+      with:
+        url: https://coverage.mintplayer.com
+        token: ${{ secrets.COVERAGE_TOKEN }}
+        files: |
+          coverage/libs/*/lcov.info
+          coverage/apps/*/lcov.info
+        disable-search: true
+        flags: branch
+        finish: true
+        fail-ci-if-error: false

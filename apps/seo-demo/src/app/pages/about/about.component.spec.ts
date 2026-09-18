@@ -11,9 +11,8 @@ describe('AboutComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        MockDirective(CanonicalUrlDirective),
+        MockDirective(CanonicalUrlDirective),AboutComponent
       ],
-      declarations: [AboutComponent],
     }).compileComponents();
   });
 

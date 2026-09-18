@@ -17,8 +17,6 @@ describe('FacebookShareComponent', () => {
         AppComponent,
         HomeComponent,
       ],
-      declarations: [
-      ],
       providers: [
         provideRouter([
           { path: '', component: HomeComponent }

@@ -55,7 +55,6 @@ describe('JsonLdDirective', () => {
         // Testbench
         JsonLdTestComponent,
       ],
-      declarations: []
     })
     .compileComponents();
 

@@ -8,7 +8,9 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
-      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-share-buttons"],
+      "outputs": [
+        "{workspaceRoot}/dist/libs/mintplayer-ng-share-buttons"
+      ],
       "options": {
         "project": "libs/mintplayer-ng-share-buttons/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-share-buttons/tsconfig.lib.json"
@@ -24,14 +26,12 @@
       "defaultConfiguration": "production"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/libs/mintplayer-ng-share-buttons"],
+      "executor": "@analogjs/vitest-angular:test",
+      "outputs": [
+        "{workspaceRoot}/coverage/libs/mintplayer-ng-share-buttons"
+      ],
       "options": {
-        "codeCoverage": true,
-        "coverageReporters": ["lcovonly"],
-        "coverageDirectory": "coverage/libs/mintplayer-ng-share-buttons",
-        "jestConfig": "libs/mintplayer-ng-share-buttons/jest.config.ts",
-        "tsConfig": "libs/mintplayer-ng-share-buttons/tsconfig.spec.json"
+        "configFile": "vitest.config.ts"
       }
     },
     "lint": {
