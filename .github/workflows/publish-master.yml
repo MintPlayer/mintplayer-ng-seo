@@ -64,117 +64,17 @@ jobs:
       id: versioning
       uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/versioning-action@fc5aa28d12bea9a9c91afee290e13cf586184714 # versioning-v1
 
-    ## ng-seo
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v1
+    # Publishes every package under dist/libs whose version the registry lacks, under the
+    # dist-tag the versioning step wrote (publishConfig.tag).
+    - name: Publish to NPM + GitHub Packages
+      uses: MintPlayer/github-actions/publish-npm-packages@b08fbddf0b285a8633ac138b89d79ceb8cc8c888
       with:
-        package: 'dist/libs/mintplayer-ng-seo/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v1
-      with:
-        package: 'dist/libs/mintplayer-ng-seo/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-
-    ## ng-base-url
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-base-url/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-        provenance: true
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-base-url/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-        provenance: true
-
-    ## ng-router-provider
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-router-provider/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-        provenance: true
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-router-provider/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-        provenance: true
-
-    ## ng-router
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-router/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-        provenance: true
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-router/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-        provenance: true
-
-    ## script-loader
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-script-loader/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-        provenance: true
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-script-loader/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-        provenance: true
-
-    ## ng-share-buttons
-    - name: Push to NPM
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-share-buttons/package.json'
-        registry: 'https://registry.npmjs.org'
-        token: ${{ secrets.PUBLISH_TO_NPMJS }}
-        access: 'public'
-        provenance: true
-
-    - name: Push to Github
-      uses: JS-DevTools/npm-publish@v3
-      with:
-        package: 'dist/libs/mintplayer-ng-share-buttons/package.json'
-        registry: 'https://npm.pkg.github.com'
-        token: ${{ github.token }}
-        access: 'public'
-        provenance: true
+        folder: dist/libs
+        registries: |
+          [
+            { "url": "https://registry.npmjs.org", "token": "${{ secrets.PUBLISH_TO_NPMJS }}" },
+            { "url": "https://npm.pkg.github.com", "token": "${{ github.token }}" }
+          ]
 
     # Publish to GitHub Container Registry
     - name: Authenticate with GHCR
