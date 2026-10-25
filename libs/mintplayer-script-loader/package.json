@@ -2,7 +2,7 @@
   "name": "@mintplayer/script-loader",
   "private": false,
   "type": "commonjs",
-  "version": "2.0.0",
+  "version": "0.0.0-PLACEHOLDER",
   "description": "Load a script and wait until it's ready",
   "repository": {
     "type": "git",
