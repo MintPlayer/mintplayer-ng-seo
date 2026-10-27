@@ -1,7 +1,7 @@
 # PRD — Align the release pipeline with `mintplayer-ng-bootstrap`
 
 **Issue:** [#26](https://github.com/MintPlayer/mintplayer-ng-seo/issues/26)
-**Status:** Planned — decisions grilled 2026-10-27, spikes open
+**Status:** Implemented — local verification done; master run pending
 **Date:** 2026-10-27
 **Owner:** PieterjanDeClippel
 
@@ -367,3 +367,50 @@ workflows should mimic the ng-bootstrap workflows".
 - **The deploy recreates a long-running container:** `ng-seo-seo-1` has been up since March, and
   `up -d` replaces it in place. The Traefik router name is the same, so expect only a few seconds
   of downtime.
+
+---
+
+## 8. Results (2026-10-27)
+
+### Spikes
+
+| Spike | Result |
+|---|---|
+| S1 | **Pass.** From a clean `dist`, `nx run-many -t build --exclude=seo-demo,seo-demo-e2e` took 63 s, and `nx build seo-demo --exclude-task-dependencies --skip-nx-cache` took 29 s. `dist/apps/seo-demo/nginx.conf` is present. There is no non-`^build` dependency to run explicitly. |
+| S2 | **Done.** `build` has a "Report the versioning mode" step that writes `steps.plan.outputs.mode` to the job summary and warns when the mode is not `server`. |
+| S3 | **Skipped.** Docker is not running on the dev machine, so the prebuilt image was not built locally. The `prebuilt` stage is two `COPY` lines from the named context. The first master run is its test (§6). |
+| S4 | **Done.** `decorate-angular-cli.js` only symlinks `node_modules/.bin/ng` to nx, inside `node_modules`. A restored cache already holds that symlink, and CI never calls `ng`. The setup action therefore skips postinstall on a cache hit, and `package.json` keeps the script for local use. |
+| S5 | **Estimate.** With a warm `node_modules` cache, `build` is about setup + 63 s (libraries, cold) + about 28 s (plan) + 29 s (demo, which always misses the cache after the stamp) + the upload. With a warm Nx cache the library build is a few seconds. `docker` no longer runs npm. The critical path should be at or under the 3 min 28 s baseline from the second run on. |
+
+### Verification
+
+- `nx run-many -t test --all --coverage`: **8 projects green** (tools: 68 tests across the guard,
+  `cli` and `rebase-lcov-paths` specs).
+- `rebase-lcov-paths.mjs` over the real `coverage/`: exit 0. `tools` covers 99% of lines.
+- The guard against the real `dist`: **exit 1**, naming all six unstamped libraries. Against a
+  fake-stamped `dist` with one library marked private: **exit 0**, and the private library is
+  logged as skipped.
+- `actionlint` 1.7.7: clean apart from `artifact-metadata: write`, a scope newer than actionlint
+  1.7.7. ng-bootstrap uses the same scope in passing runs.
+
+### Where the implementation differs from §4 and §5
+
+- **Action versions:** these go one step past ng-bootstrap, to the latest releases, as in
+  mintplayer-ng-video-player#102's plan: `checkout@v7`, `setup-node@v7`, `cache@v6`. The rest are as
+  in D8.
+- **Master concurrency:** `cancel-in-progress: false`, following video-player#102. Cancelling a run
+  between the release step's tag push and the npm publish would leave tags without packages.
+  `pull-request.yml` keeps `true`.
+- **`rebase-lcov-paths.mjs`:** this repo's copy predated `lib/cli.mjs` and could not be parsed for
+  coverage, so ng-bootstrap's current version and its spec were ported. That version adds `main()`
+  through `runCli`, and shard directories.
+- **`nx.json`:** `useLegacyCache: true` was dropped together with `nxCloudAccessToken`. ng-bootstrap
+  has neither, and the self-hosted remote cache needs the new cache.
+- **Coverage upload:** the upload is now `coverage/libs/**` plus `coverage/tools`, without
+  `coverage/apps`, as in ng-bootstrap. The demo's coverage is not a property of the published
+  libraries.
+- **`.dockerignore`:** added, so the local `standalone` build doesn't send the host's
+  `node_modules` into the build context.
+- **Noticed, not changed:** the project at `libs/mintplayer-ng-share-buttons` is named
+  `mintplayer-ng-share-buttons-demo` in its `project.json`. It is still built, tested and published
+  correctly.

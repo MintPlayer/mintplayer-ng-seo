@@ -4,11 +4,14 @@ on:
   push:
     branches: [ master ]
 
-# A newer push cancels the run in flight: the newer run publishes and deploys
-# the newer commit anyway.
+# A newer push WAITS for the run in flight instead of cancelling it (unlike
+# ng-bootstrap, as mintplayer-ng-video-player#102 decided): with the
+# plan/release split, a run cancelled between the release step's tag push and
+# the npm publish leaves tags without packages, and that version never reaches
+# npm. Queued runs also keep the next plan from racing this run's release.
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -53,7 +56,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Setup workspace
       uses: ./.github/actions/setup
@@ -110,12 +113,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     # rebase-lcov-paths.mjs imports only node: built-ins and a local helper,
     # so Node itself is enough: no node_modules.
     - name: Setup node
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: 24
 
@@ -175,7 +178,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Download dist artifact
       uses: actions/download-artifact@v8
@@ -253,7 +256,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download dist artifact
         uses: actions/download-artifact@v8
