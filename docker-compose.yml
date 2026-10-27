@@ -1,0 +1,19 @@
+# Deployed to /var/www/ng-seo on the VPS by the `deploy` job of publish-master.yml.
+# The project directory, service and router names match the compose file that was
+# there before, so the first deploy recreates the existing container in place.
+services:
+  seo:
+    image: ghcr.io/mintplayer/mintplayer-ng-seo:master
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.seo.rule=Host(`seo.mintplayer.com`)"
+      - "traefik.http.routers.seo.entrypoints=websecure"
+      - "traefik.http.routers.seo.tls.certresolver=letsencrypt"
+      - "traefik.http.services.seo.loadbalancer.server.port=80"
+    networks:
+      - web
+    restart: unless-stopped
+
+networks:
+  web:
+    external: true
