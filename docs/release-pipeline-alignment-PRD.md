@@ -1,7 +1,7 @@
 # PRD — Align the release pipeline with `mintplayer-ng-bootstrap`
 
 **Issue:** [#26](https://github.com/MintPlayer/mintplayer-ng-seo/issues/26)
-**Status:** Implemented — local verification done; master run pending
+**Status:** Done — merged in #27; first master run ([40580811021](https://github.com/MintPlayer/mintplayer-ng-seo/actions/runs/40580811021)) green, cleanup finished
 **Date:** 2026-10-27
 **Owner:** PieterjanDeClippel
 
@@ -339,16 +339,17 @@ workflows should mimic the ng-bootstrap workflows".
 
 ## 6. Acceptance checks (master runs after merge)
 
-- [ ] All jobs are green and the `publish-master` aggregator succeeds.
-- [ ] The job summary shows plan `mode` = `server`, with no "versioning with the local engine"
+- [x] All jobs are green and the `publish-master` aggregator succeeds.
+- [x] The job summary shows plan `mode` = `server`, with no "versioning with the local engine"
       warning.
-- [ ] The guard logs OK for all six libraries.
-- [ ] The packages on npmjs and GitHub Packages carry the planned versions, and the tags
+- [x] The guard logs OK for all six libraries.
+- [x] The packages on npmjs and GitHub Packages carry the planned versions, and the tags
       `<package>/v<version>` exist.
-- [ ] The docker job log has no `npm install`, and the image digest on GHCR matches the one pushed.
-- [ ] On the VPS, `ng-seo-seo-1` runs the new digest, and `https://seo.mintplayer.com` serves a
+- [x] The docker job log has no `npm install`, and the image digest on GHCR matches the one pushed.
+- [x] On the VPS, `ng-seo-seo-1` runs the new digest, and `https://seo.mintplayer.com` serves a
       build newer than 2025-12-18 (check `Last-Modified`).
-- [ ] Wall clock on the **second** run is ≤ about 3 min 28 s (baseline run 40204499665).
+- [ ] Wall clock on the **second** run is ≤ about 3 min 28 s (baseline run 40204499665). The first
+      run, with cold caches, already took 2 min 19 s.
 
 ## 7. Risks
 
