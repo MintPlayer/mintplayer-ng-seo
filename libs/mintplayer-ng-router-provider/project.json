@@ -8,9 +8,8 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:package",
-      "outputs": [
-        "{workspaceRoot}/dist/libs/mintplayer-ng-router-provider"
-      ],
+      "outputs": ["{workspaceRoot}/dist/libs/mintplayer-ng-router-provider"],
+      "defaultConfiguration": "production",
       "options": {
         "project": "libs/mintplayer-ng-router-provider/ng-package.json",
         "tsConfig": "libs/mintplayer-ng-router-provider/tsconfig.lib.json"
@@ -22,8 +21,7 @@
         "development": {
           "tsConfig": "libs/mintplayer-ng-router-provider/tsconfig.lib.json"
         }
-      },
-      "defaultConfiguration": "production"
+      }
     },
     "test": {
       "executor": "@analogjs/vitest-angular:test",
@@ -33,9 +31,6 @@
       "options": {
         "configFile": "vitest.config.ts"
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

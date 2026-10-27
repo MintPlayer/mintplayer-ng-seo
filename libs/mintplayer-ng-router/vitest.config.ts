@@ -1,9 +1,9 @@
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 import angular from '@analogjs/vite-plugin-angular';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  plugins: [angular({ jit: true, tsconfig: 'tsconfig.spec.json' }), nxViteTsPaths()],
+  plugins: [angular({ jit: true, tsconfig: 'tsconfig.spec.json' }), tsconfigPaths()],
   test: {
     name: 'mintplayer-ng-router',
     globals: true,

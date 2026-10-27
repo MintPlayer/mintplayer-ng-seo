@@ -414,3 +414,24 @@ workflows should mimic the ng-bootstrap workflows".
 - **Noticed, not changed:** the project at `libs/mintplayer-ng-share-buttons` is named
   `mintplayer-ng-share-buttons-demo` in its `project.json`. It is still built, tested and published
   correctly.
+
+### Added after review: Nx 24 and Playwright
+
+At the owner's request the PR also migrates the workspace and replaces Cypress.
+
+- **Nx 22.7.5 → 24.0.2** with `nx migrate`: 41 migrations applied, 3 skipped, 0 unresolved.
+  Angular moves to 22.2. ESLint flat configs no longer use `FlatCompat`, so `@eslint/eslintrc` is gone,
+  and `lint` and the `tools` test target are now inferred by plugins. `@nx/vitest` runs
+  with `testMode: run`, so `nx test` runs once as the old executor did.
+- **`nxViteTsPaths` is a no-op stub in Nx 24**, and Vite 6 has no native `resolve.tsconfigPaths`.
+  The seven `vitest.config.ts` files use `vite-tsconfig-paths` instead.
+- **Cypress → Playwright:** `seo-demo-e2e` was a dead Cypress scaffold, and Nx 24 removed its
+  executor. It is now a Playwright project inferred by `@nx/playwright/plugin`, with the same config
+  shape as ng-bootstrap: chromium and firefox, against `nx serve seo-demo` in production mode. Its
+  specs check what the libraries write into `<head>`: the title, the description and OpenGraph tags,
+  the canonical URL, the hreflang alternates, JSON-LD, in-place updates, and the canonical link being
+  replaced on navigation. `pull-request.yml` runs them in a `playwright image` + `e2e` matrix
+  inside the Playwright container, skipped when `seo-demo-e2e` is not affected.
+- **Verified:** lint 8/8, build 7/7, test 8/8, and e2e 4/4 on chromium and on firefox.
+  actionlint is unchanged. Running both browsers at once on the Windows dev machine was flaky
+  under load; one browser per run, as in CI, passes.
