@@ -35,8 +35,8 @@ Success (from the issue):
 
 - Showing a version in `seo-demo`, with its `dev` fallback and e2e version test. If that is ever
   wanted, add an entry to `DEMOS` (M1) and port ng-bootstrap's fallback and e2e test.
-- Running the Cypress `seo-demo-e2e` in CI. It isn't run today, and ng-bootstrap's Playwright e2e
-  jobs are tied to its demos.
+- ~~Running the Cypress `seo-demo-e2e` in CI.~~ Brought into scope after review: the e2e moved to
+  Playwright and runs in `pull-request.yml` (see §8, "Added after review").
 
 ---
 
