@@ -8,9 +8,8 @@
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:application",
-      "outputs": [
-        "{workspaceRoot}/dist/apps/seo-demo"
-      ],
+      "outputs": ["{workspaceRoot}/dist/apps/seo-demo"],
+      "defaultConfiguration": "production",
       "options": {
         "outputPath": {
           "base": "dist/apps/seo-demo",
@@ -26,9 +25,7 @@
           "apps/seo-demo/src/web.config",
           "apps/seo-demo/src/nginx.conf"
         ],
-        "styles": [
-          "apps/seo-demo/src/styles.scss"
-        ],
+        "styles": ["apps/seo-demo/src/styles.scss"],
         "scripts": []
       },
       "configurations": {
@@ -59,11 +56,11 @@
           "sourceMap": true,
           "namedChunks": true
         }
-      },
-      "defaultConfiguration": "production"
+      }
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
+      "defaultConfiguration": "development",
       "configurations": {
         "production": {
           "buildTarget": "seo-demo:build:production"
@@ -72,7 +69,9 @@
           "buildTarget": "seo-demo:build:development"
         }
       },
-      "defaultConfiguration": "development"
+      "readyWhen": {
+        "signal": true
+      }
     },
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
@@ -80,14 +79,9 @@
         "buildTarget": "seo-demo:build"
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
       "executor": "@analogjs/vitest-angular:test",
-      "outputs": [
-        "{workspaceRoot}/coverage/apps/seo-demo"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/apps/seo-demo"],
       "options": {
         "configFile": "vitest.config.ts"
       }

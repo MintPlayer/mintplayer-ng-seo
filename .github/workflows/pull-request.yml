@@ -1,42 +1,92 @@
-name: npm-publish
+name: pull-request
 
 on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+# Self-hosted Nx remote cache. RW token is only used on push to the default
+# branch; everything else (PRs) gets the read-only token.
+env:
+  NX_SELF_HOSTED_REMOTE_CACHE_SERVER: ${{ secrets.NX_CACHE_SERVER }}
+  NX_SELF_HOSTED_REMOTE_CACHE_ACCESS_TOKEN: ${{ (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch) && secrets.NX_CACHE_RW_TOKEN || secrets.NX_CACHE_RO_TOKEN }}
+
+permissions:
+  contents: read
+
+# The same layout as mintplayer-ng-bootstrap: the build, the unit tests
+# (test.yml, shared with publish-master.yml), the coverage upload and the
+# dry-run publish each get their own runner, and the `pull-request` job sums
+# them up in one check.
 jobs:
   build:
-
-    name: npm-publish
+    name: build
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      uses: actions/checkout@v7
 
-    - name: Setup node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22
-
-    - name: Install dependencies
-      run: npm ci --force
+    - name: Setup workspace
+      uses: ./.github/actions/setup
 
     - name: Build
-      run: npm run build -- --configuration=production
+      run: npx nx run-many -t build --configuration=production
 
-    - name: Test
-      run: npx nx affected -t test --coverage --parallel=2 --output-style=stream --base=${{ github.event.pull_request.base.sha }} --head=${{ github.event.pull_request.head.sha }}
+    # Hand dist/ off to the dry-run-publish-libs job.
+    - name: Upload dist artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist/
+        retention-days: 1
 
+  tests:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  coverage:
+    name: coverage upload
+    needs: tests
+    if: ${{ !cancelled() }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    # rebase-lcov-paths.mjs imports only node: built-ins and a local helper.
+    - name: Setup node
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24
+
+    - name: Collect the test jobs' reports
+      uses: actions/download-artifact@v8
+      with:
+        pattern: coverage-*
+        merge-multiple: true
+
+    # Vitest writes `SF:` paths relative to each project's own root; the
+    # service resolves them against `git ls-files` by longest suffix and drops
+    # anything ambiguous. This rewrites them to workspace-relative, and fails
+    # loudly if any path stops resolving.
     - name: Rebase coverage paths to workspace-relative
       run: node tools/scripts/rebase-lcov-paths.mjs
 
+    # Nothing in this workflow gates the merge on coverage: the service
+    # publishes the `coverage/project` and `coverage/patch` check runs itself.
+    #
+    # `base-sha` is the PR base, passed explicitly: left out, the server falls
+    # back to the newest covered default-branch commit.
     - name: Upload coverage
+      # Fork PRs get no secrets, so the upload cannot work there. Skip rather
+      # than fail — a contributor's PR must not go red over a missing token.
       if: github.event.pull_request.head.repo.full_name == github.repository
       continue-on-error: true
       uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/action@coverage-upload-v1
@@ -44,12 +94,136 @@ jobs:
         url: https://coverage.mintplayer.com
         token: ${{ secrets.COVERAGE_TOKEN }}
         files: |
-          coverage/libs/*/lcov.info
-          coverage/apps/*/lcov.info
+          coverage/libs/**/lcov.info
+          coverage/tools/lcov.info
         disable-search: true
         flags: pr
         partial: true
         base-sha: ${{ github.event.pull_request.base.sha }}
+        # Closes the build now instead of waiting out the ~2-minute debounce, so
+        # the check runs appear while the PR is still being looked at.
         finish: true
+        # A coverage-service outage must never be the reason a PR cannot merge.
         fail-ci-if-error: false
 
+  # The Playwright image for the installed @playwright/test, read from the
+  # lockfile (package.json holds only a range). Its browsers AND their OS
+  # libraries are baked in, so the e2e job never runs `playwright install-deps`
+  # against the runners' sometimes very slow Ubuntu mirror.
+  playwright-image:
+    name: playwright image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.version.outputs.image }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        sparse-checkout: package-lock.json
+        sparse-checkout-cone-mode: false
+
+    - name: Resolve the image
+      id: version
+      run: |
+        version=$(jq -er '.packages["node_modules/@playwright/test"].version' package-lock.json)
+        echo "image=mcr.microsoft.com/playwright:v$version-noble" >> "$GITHUB_OUTPUT"
+
+  # Runs inside the image. uid 1001 is the runner's own user, so the
+  # checked-out workspace stays writable.
+  e2e:
+    name: e2e (${{ matrix.browser }})
+    needs: playwright-image
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.playwright-image.outputs.image }}
+      options: --user 1001
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Setup workspace
+      uses: ./.github/actions/setup
+
+    - name: Is seo-demo-e2e affected?
+      id: affected
+      run: |
+        if npx nx show projects --affected --base=${{ github.event.pull_request.base.sha }} --head=${{ github.event.pull_request.head.sha }} | grep -qx 'seo-demo-e2e'; then
+          echo "run=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "run=false" >> "$GITHUB_OUTPUT"
+          echo "seo-demo-e2e is not affected by this PR; skipping."
+        fi
+
+    - name: E2E tests
+      if: steps.affected.outputs.run == 'true'
+      # Everything after `--` goes to `playwright test` untouched; Nx would
+      # consume a bare `--project` itself.
+      run: npx nx run seo-demo-e2e:e2e --output-style=stream -- --project=${{ matrix.browser }}
+
+    # `trace: 'on-first-retry'` records a trace for every retried test; this
+    # keeps it. A clean run produces nothing, hence `ignore`.
+    - name: Upload Playwright traces
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: playwright-traces-${{ matrix.browser }}
+        path: apps/seo-demo-e2e/test-results/
+        if-no-files-found: ignore
+        retention-days: 7
+
+  pull-request:
+    name: pull-request
+    if: always()
+    # playwright-image is listed because its failure SKIPS the e2e jobs, and a
+    # skip alone would not fail this check.
+    needs: [build, tests, coverage, playwright-image, e2e, dry-run-publish-libs]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: All jobs passed
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: |
+        echo '${{ toJSON(needs) }}'
+        exit 1
+
+  # The action handles discovery, topo-sort and the per-package
+  # `npm publish --dry-run`, so a broken package fails here, not on master.
+  dry-run-publish-libs:
+    name: dry-run-publish-libs
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      - name: Dry-run publish (dist/libs)
+        uses: MintPlayer/github-actions/publish-npm-packages@b08fbddf0b285a8633ac138b89d79ceb8cc8c888
+        with:
+          folder: dist/libs
+          dry-run: true
+          registries: |
+            [
+              { "url": "https://registry.npmjs.org", "token": "${{ secrets.PUBLISH_TO_NPMJS }}", "provenance": false }
+            ]

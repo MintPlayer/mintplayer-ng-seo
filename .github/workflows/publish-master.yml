@@ -1,49 +1,137 @@
-name: npm-publish
+name: publish-master
 
 on:
   push:
     branches: [ master ]
 
+# A newer push WAITS for the run in flight instead of cancelling it (unlike
+# ng-bootstrap, as mintplayer-ng-video-player#102 decided): with the
+# plan/release split, a run cancelled between the release step's tag push and
+# the npm publish leaves tags without packages, and that version never reaches
+# npm. Queued runs also keep the next plan from racing this run's release.
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
-permissions: 
+permissions:
   contents: read
-  packages: write 
+
+# Self-hosted Nx remote cache. RW token is only used on push to the default
+# branch; everything else (PRs) gets the read-only token.
+env:
+  NX_SELF_HOSTED_REMOTE_CACHE_SERVER: ${{ secrets.NX_CACHE_SERVER }}
+  NX_SELF_HOSTED_REMOTE_CACHE_ACCESS_TOKEN: ${{ (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch) && secrets.NX_CACHE_RW_TOKEN || secrets.NX_CACHE_RO_TOKEN }}
+
+# The same layout as mintplayer-ng-bootstrap (docs/release-pipeline-alignment-PRD.md).
+# The jobs run in PARALLEL wherever nothing forces an order:
+#
+#   build ──────────────┐
+#   tests (test.yml) ───┼─► docker ─► deploy
+#                       └─► publish-libs
+#   tests ─► coverage
+#
+# Versioning is split around the tests: `build` PLANS the versions after the
+# library build, which stamps every package.json without tagging. publish-libs
+# RELEASES that plan after the tests, so a tag always promises a tested commit.
+#
+# The image is built from the very `dist` the build job produced, so what is
+# deployed is what was tested. The old image ran `npm install` + `nx build` a
+# second time inside Docker (~92 s of a ~3.5 min run).
 
 jobs:
   build:
-
-    name: npm-publish
+    name: build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     permissions:
-      contents: write
+      contents: read
+      # Server-mode versioning: the plan step proves to the app which
+      # repository and workflow is asking. Without it the step warns and falls
+      # back to the local engine instead of failing.
       id-token: write
-      packages: write
-      attestations: write
+
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      uses: actions/checkout@v7
 
+    - name: Setup workspace
+      uses: ./.github/actions/setup
+
+    # The plan hashes each library's public API from its build output, so the
+    # libraries are built first, and the demo after the plan.
+    - name: Build libraries
+      run: npx nx run-many -t build --exclude=seo-demo,seo-demo-e2e --configuration=production
+
+    - name: Plan the package versions
+      id: plan
+      uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/versioning-action@14900a6057ee305ac9b03690fcb2ff989452e2eb # versioning-v1.1.0
+      with:
+        phase: plan
+
+    # The action logs only a fallback to the local engine, never server mode
+    # itself; this makes the mode visible on the run page.
+    - name: Report the versioning mode
+      env:
+        MODE: ${{ steps.plan.outputs.mode }}
+      run: |
+        echo "Versioning mode: \`${MODE:-unknown}\`" >> "$GITHUB_STEP_SUMMARY"
+        if [ "$MODE" != "server" ]; then
+          echo "::warning::The plan ran in '${MODE:-unknown}' mode, not server mode."
+        fi
+
+    # The demo imports the libraries from source (tsconfig paths), so it does
+    # not need them rebuilt.
+    - name: Build demo
+      run: npx nx build seo-demo --configuration=production --exclude-task-dependencies
+
+    - name: Check the published packages carry their versions
+      run: node tools/scripts/check-demo-versions.mjs
+
+    - name: Upload dist artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: dist
+        path: dist/
+        retention-days: 1
+
+  tests:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  # A side job, NOT a publishing gate: publishing depends on the tests passing,
+  # never on the coverage service being up. A failed upload still turns the
+  # run red through the aggregator, it just cannot hold a release back.
+  coverage:
+    name: coverage
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    # rebase-lcov-paths.mjs imports only node: built-ins and a local helper,
+    # so Node itself is enough: no node_modules.
     - name: Setup node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
-        node-version: 22
+        node-version: 24
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v8
+      with:
+        pattern: coverage-*
+        merge-multiple: true
 
-    - name: Build
-      run: npm run build -- --configuration=production
-
-    - name: Test
-      run: npx nx run-many -t test --all --coverage --parallel=2 --output-style=stream
-
+    # Vitest writes `SF:` paths relative to each project's own root; the
+    # service resolves them against `git ls-files` by longest suffix and drops
+    # anything ambiguous. This rewrites them to workspace-relative, and fails
+    # loudly if any path stops resolving.
     - name: Rebase coverage paths to workspace-relative
       run: node tools/scripts/rebase-lcov-paths.mjs
 
@@ -52,64 +140,208 @@ jobs:
       with:
         url: https://coverage.mintplayer.com
         token: ${{ secrets.COVERAGE_TOKEN }}
+        # libs and tools only. The demo app still runs its tests, but its
+        # coverage is not a property of the published libraries.
         files: |
-          coverage/libs/*/lcov.info
-          coverage/apps/*/lcov.info
+          coverage/libs/**/lcov.info
+          coverage/tools/lcov.info
+        # With search on, a glob that matches nothing silently falls back to
+        # auto-detection and would upload stray unparsable reports.
         disable-search: true
         flags: unit
         finish: true
-        fail-ci-if-error: false
+        fail-ci-if-error: true
 
-    - name: Version the packages
-      id: versioning
-      uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/versioning-action@fc5aa28d12bea9a9c91afee290e13cf586184714 # versioning-v1
+  # Builds the `prebuilt` target of the Dockerfile, which copies
+  # dist/apps/seo-demo from a named build context instead of building from source.
+  docker:
+    name: image
+    needs: [build, tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
-    # Publishes every package under dist/libs whose version the registry lacks, under the
-    # dist-tag the versioning step wrote (publishConfig.tag).
-    - name: Publish to NPM + GitHub Packages
-      uses: MintPlayer/github-actions/publish-npm-packages@b08fbddf0b285a8633ac138b89d79ceb8cc8c888
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+      attestations: write
+      # attest-build-provenance also files an artifact-metadata storage record
+      # alongside the attestation itself; without this it warns and skips that
+      # half. The attestation is still created either way.
+      artifact-metadata: write
+
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      # The build-record artifact the build-push step uploads is ~2 s that
+      # nothing reads.
+      DOCKER_BUILD_RECORD_UPLOAD: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Download dist artifact
+      uses: actions/download-artifact@v8
       with:
-        folder: dist/libs
-        registries: |
-          [
-            { "url": "https://registry.npmjs.org", "token": "${{ secrets.PUBLISH_TO_NPMJS }}" },
-            { "url": "https://npm.pkg.github.com", "token": "${{ github.token }}" }
-          ]
+        name: dist
+        path: dist
 
-    # Publish to GitHub Container Registry
     - name: Authenticate with GHCR
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
     - name: Extract tags/labels
-      id: meta-ghcr
-      uses: docker/metadata-action@v5
+      id: meta
+      uses: docker/metadata-action@v6
       with:
         github-token: ${{ github.token }}
-        images: ghcr.io/${{ github.repository }}
-    
-    - name: Publish to Github Container Registry
-      id: push-ghcr
-      uses: docker/build-push-action@v6
+        images: ${{ env.IMAGE }}
+
+    # Built into the local image store and pushed separately, so a failed push
+    # (GHCR's "unknown blob" race) retries the push alone.
+    - name: Build
+      uses: docker/build-push-action@v7
       with:
         context: .
-        file: ./Dockerfile
-        push: true
-        tags: ${{ steps.meta-ghcr.outputs.tags }}
-        labels: ${{ steps.meta-ghcr.outputs.labels }}
+        file: ./apps/seo-demo/Dockerfile
+        target: prebuilt
+        build-contexts: dist=dist/apps/seo-demo
+        push: false
+        load: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Push
+      id: push
+      uses: ./.github/actions/docker-push
+      with:
+        tags: ${{ steps.meta.outputs.tags }}
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v4
       with:
-        subject-name: ghcr.io/${{ github.repository }}
-        subject-digest: ${{ steps.push-ghcr.outputs.digest }}
+        subject-name: ${{ env.IMAGE }}
+        subject-digest: ${{ steps.push.outputs.digest }}
         push-to-registry: true
 
-    #- name: Trigger deploy hook
-    #  uses: fjogeleit/http-request-action@v1
-    #  with:
-    #    url: ${{ secrets.SLIPLANE_DEPLOY_HOOK }}
-    #    method: GET
+    # GHCR packages default to private on first publish, and the VPS's
+    # `docker compose pull` then fails with 'denied'. PATCH is idempotent:
+    # an already-public package returns 204. A 403/404 is swallowed so a
+    # misconfigured token doesn't fail the job.
+    - name: Make the image public
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PACKAGE: ${{ github.event.repository.name }}
+      run: |
+        gh api --method PATCH \
+          "/orgs/${{ github.repository_owner }}/packages/container/$PACKAGE" \
+          -f visibility=public 2>&1 || echo "  (skipped — already public, missing, or insufficient scope)"
+
+  # MintPlayer/github-actions/publish-npm-packages scans dist/libs, topo-sorts
+  # the libraries by peerDependencies, and publishes every version the registry
+  # lacks under the dist-tag the versioning step wrote (publishConfig.tag).
+  publish-libs:
+    name: publish-libs
+    needs: [build, tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      # Tags exactly what `build` planned and stamps the checkout and dist again.
+      - name: Release the planned versions
+        uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/versioning-action@14900a6057ee305ac9b03690fcb2ff989452e2eb # versioning-v1.1.0
+        with:
+          phase: release
+          plan: ${{ needs.build.outputs.plan }}
+
+      - name: Publish to NPM + GitHub Packages
+        uses: MintPlayer/github-actions/publish-npm-packages@b08fbddf0b285a8633ac138b89d79ceb8cc8c888
+        with:
+          folder: dist/libs
+          registries: |
+            [
+              { "url": "https://registry.npmjs.org", "token": "${{ secrets.PUBLISH_TO_NPMJS }}" },
+              { "url": "https://npm.pkg.github.com", "token": "${{ github.token }}" }
+            ]
+
+  # Pulls the new image on the VPS and recreates the container. The compose
+  # project (/var/www/ng-seo), service and router names match what ran there
+  # before this job existed, so the container is replaced in place.
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/master'
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          passphrase: ${{ secrets.VPS_SSH_KEY_PASSPHRASE }}
+          envs: GITHUB_TOKEN
+          script: |
+            mkdir -p /var/www/ng-seo
+            cd /var/www/ng-seo
+
+            # Download latest docker-compose.yml from the repository
+            rm -f docker-compose.yml
+            curl -sf -H "Authorization: token $GITHUB_TOKEN" -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/master/docker-compose.yml
+
+            # Log in to GHCR using the workflow's GITHUB_TOKEN
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull latest image
+            docker compose pull
+
+            # Recreate only the containers whose image changed. No `down` first:
+            # it stops every container before the new ones can start, which is
+            # pure downtime. --remove-orphans clears services renamed away.
+            docker compose up -d --remove-orphans
+
+            # Clean up old images
+            docker image prune -f
+
+  # The single check that sums the run up, under the workflow's name.
+  # `if: always()` so it reports a failure instead of being skipped when a job
+  # it needs failed.
+  publish-master:
+    name: publish-master
+    if: always()
+    needs: [build, tests, coverage, docker, publish-libs, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: All jobs passed
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: |
+        echo '${{ toJSON(needs) }}'
+        exit 1

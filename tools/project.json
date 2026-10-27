@@ -1,0 +1,18 @@
+{
+  "name": "tools",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/tools"
+      ],
+      "options": {
+        "coverage.reportsDirectory": "../coverage/tools"
+      }
+    }
+  }
+}

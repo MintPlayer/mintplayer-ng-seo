@@ -1,0 +1,54 @@
+name: test
+
+# Every unit-test suite. Called by pull-request.yml and publish-master.yml, so
+# both measure the same thing (the layout mintplayer-ng-bootstrap uses).
+#
+# run-many, NOT affected: `test` declares its coverage directory as a cached
+# output, so an unaffected project's report is RESTORED from the Nx cache
+# rather than regenerated, and the coverage upload still gets a report for
+# every project. The reports go to the caller's coverage job as an artifact.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  NX_SELF_HOSTED_REMOTE_CACHE_SERVER: ${{ secrets.NX_CACHE_SERVER }}
+  NX_SELF_HOSTED_REMOTE_CACHE_ACCESS_TOKEN: ${{ (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch) && secrets.NX_CACHE_RW_TOKEN || secrets.NX_CACHE_RO_TOKEN }}
+
+jobs:
+  test:
+    name: unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Setup workspace
+      uses: ./.github/actions/setup
+
+    - name: Run tests
+      run: npx nx run-many -t test --all --coverage --parallel=2 --output-style=stream
+
+    # upload-artifact roots the artifact at the deepest folder ALL matched files
+    # share, so a run that only produced coverage/libs/** would lose that prefix
+    # and the coverage job would put the report where the rebase script cannot
+    # attribute it. A file at the workspace root pins the root.
+    - name: Pin the artifact root
+      if: always()
+      run: echo "unit tests" > coverage-artifact-root.txt
+
+    - name: Upload coverage reports
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-unit
+        path: |
+          coverage-artifact-root.txt
+          coverage/**/lcov.info
+        if-no-files-found: ignore
+        retention-days: 1
